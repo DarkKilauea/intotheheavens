@@ -15,9 +15,9 @@ import java.util.Map;
  */
 public class Command 
 {
-    private Map<String, Object> _parameters = new HashMap<String, Object>();
-    private List<ICommandListener> _listeners = new ArrayList<ICommandListener>();
-    private String _name = null;
+    protected Map<String, Object> _parameters = new HashMap<String, Object>();
+    protected List<ICommandListener> _listeners = new ArrayList<ICommandListener>();
+    protected String _name = null;
     
     public Command(String name)
     {
@@ -72,5 +72,15 @@ public class Command
         {
             listener.onCommandExecuted(this);
         }
+    }
+    
+    public String getDescription()
+    {
+        return "";
+    }
+    
+    public String getHelpText()
+    {
+        return "";
     }
 }

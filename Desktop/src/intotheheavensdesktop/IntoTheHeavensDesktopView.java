@@ -5,6 +5,7 @@
 package intotheheavensdesktop;
 
 import java.awt.event.KeyEvent;
+import net.darkkilauea.intotheheavens.GameMode.State;
 import org.jdesktop.application.Action;
 import org.jdesktop.application.ResourceMap;
 import org.jdesktop.application.SingleFrameApplication;
@@ -16,12 +17,18 @@ import javax.swing.Timer;
 import javax.swing.Icon;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
+import net.darkkilauea.intotheheavens.GameModeManager;
+import net.darkkilauea.intotheheavens.IGameModeListener;
+import net.darkkilauea.intotheheavens.TestGameMode;
 
 /**
  * The application's main frame.
  */
-public class IntoTheHeavensDesktopView extends FrameView 
+public class IntoTheHeavensDesktopView extends FrameView implements IGameModeListener
 {
+    private GameModeManager _manager = new GameModeManager();
+    private TestGameMode _testMode = new TestGameMode();
+    
     public IntoTheHeavensDesktopView(SingleFrameApplication app) 
     {
         super(app);
@@ -93,6 +100,10 @@ public class IntoTheHeavensDesktopView extends FrameView
                 }
             }
         });
+        
+        _testMode.registerListener(this);
+        _manager.registerGameMode("Test", _testMode);
+        _manager.setActiveMode("Test");
     }
 
     @Action
@@ -237,8 +248,19 @@ public class IntoTheHeavensDesktopView extends FrameView
         // TODO add your handling code here:
         if(evt.getKeyCode() == KeyEvent.VK_ENTER)
         {
-            consoleTextArea.setText(consoleTextArea.getText() + "> " + commandTextField.getText() + "\n");
+            String commandText = commandTextField.getText();
+            if(commandText.startsWith("/") || commandText.startsWith("!"))
+            {
+                commandText = commandText.substring(1, commandText.length());
+            }
+            
+            consoleTextArea.setText(consoleTextArea.getText() + "> " + commandText + "\n");
             commandTextField.setText(null);
+            
+            if(_manager.getActiveMode() != null)
+            {
+                _manager.getActiveMode().injectTextInput(commandText);
+            }
         }
     }//GEN-LAST:event_commandTextFieldKeyPressed
 
@@ -261,4 +283,14 @@ public class IntoTheHeavensDesktopView extends FrameView
     private int busyIconIndex = 0;
 
     private JDialog aboutBox;
+
+    public void onStateChange(State state) 
+    {
+        
+    }
+
+    public void onTextOutput(String output) 
+    {
+        consoleTextArea.setText(consoleTextArea.getText() + output + "\n");
+    }
 }

@@ -4,33 +4,69 @@
  */
 package net.darkkilauea.intotheheavens;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  *
  * @author joshua
  */
 public class GameMode 
 {
-    GameModeManager _manager = null;
+    public enum State
+    {
+        Unknown,
+        Initialized,
+        Running,
+        Paused,
+        Stopped
+    }
+    
+    protected GameModeManager _manager = null;
+    protected State _state = State.Unknown;
+    protected List<IGameModeListener> _listeners = new ArrayList<IGameModeListener>();
     
     public boolean initialize(GameModeManager manager)
     {
         _manager = manager;
+        _state = State.Initialized;
         
-        return false;
+        return true;
     }
     
     public void resume()
     {
-        
+        _state = State.Running;
     }
     
     public void pause()
     {
-        
+        _state = State.Paused;
     }
     
     public void shutdown()
     {
         _manager = null;
+        _state = State.Stopped;
+    }
+    
+    public State getState()
+    {
+        return _state;
+    }
+    
+    public boolean registerListener(IGameModeListener listener)
+    {
+        return _listeners.add(listener);
+    }
+    
+    public boolean unregisterListener(IGameModeListener listener)
+    {
+        return _listeners.remove(listener);
+    }
+    
+    public void injectTextInput(String input)
+    {
+        
     }
 }
