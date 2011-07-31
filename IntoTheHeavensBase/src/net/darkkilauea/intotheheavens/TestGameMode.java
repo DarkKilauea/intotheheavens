@@ -4,6 +4,8 @@
  */
 package net.darkkilauea.intotheheavens;
 
+import net.darkkilauea.intotheheavens.ITHScript.LocationFileParser;
+
 /**
  *
  * @author joshua
@@ -21,6 +23,21 @@ public class TestGameMode extends GameMode implements ICommandListener
         helpCommand.registerListener(this);
         
         _commandLayer.registerCommand(helpCommand);
+        
+        try
+        {
+            LocationFileParser parser = new LocationFileParser();
+            parser.parseFile("base/testLocationStart.txt");
+        }
+        catch (Exception ex) 
+        {
+            String message = ex.getMessage();
+            
+            for(IGameModeListener listener : _listeners)
+            {
+                listener.onTextOutput("Exception Caught: " + message);
+            }
+        }
         
         return true;
     }

@@ -1,0 +1,52 @@
+location "TestName"
+{
+	
+}
+
+location "Start"
+{
+	command "North"
+	{
+		print "You cannot go north."
+	}
+	
+	command "East"
+	{
+		print "You walk east."
+		goto "East Of Start"
+	}
+	
+	command "South"
+	{
+		print "You cannot go south."
+	}
+	
+	command "West"
+	{
+		print "You cannot go west."
+	}
+}
+
+location "East Of Start"
+{
+	command "North"
+	{
+		print "You still cannot go north."
+	}
+	
+	command "East"
+	{
+		print "You cannot go east."
+	}
+	
+	command "South"
+	{
+		print "You cannot go south."
+	}
+	
+	command "West"
+	{
+		print "You walk west."
+		goto "Start"
+	}
+}
