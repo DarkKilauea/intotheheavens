@@ -41,6 +41,8 @@ public class Lexer
     public static int TK_DIVEQ = 281;
     public static int TK_MODEQ = 282;
     public static int TK_IDENTIFIER = 283;
+    public static int TK_PRINT = 284;
+    public static int TK_GOTO = 285;
     
     private Reader _reader = null;
     private char _curCharacter = '\0';
@@ -61,6 +63,18 @@ public class Lexer
         
         _keywords.put("location", TK_LOCATION);
         _keywords.put("command", TK_COMMAND);
+        _keywords.put("if", TK_IF);
+        _keywords.put("else", TK_ELSE);
+        _keywords.put("and", TK_AND);
+        _keywords.put("or", TK_OR);
+        _keywords.put("null", TK_NULL);
+        _keywords.put("nil", TK_NULL);
+        _keywords.put("true", TK_TRUE);
+        _keywords.put("false", TK_FALSE);
+        _keywords.put("yes", TK_TRUE);
+        _keywords.put("no", TK_FALSE);
+        _keywords.put("print", TK_PRINT);
+        _keywords.put("goto", TK_GOTO);
         
         next();
     }
@@ -78,6 +92,16 @@ public class Lexer
     public float getFloatValue()
     {
         return _floatValue;
+    }
+    
+    public int getLineNumber()
+    {
+        return _curLine;
+    }
+    
+    public int getColumnNumber()
+    {
+        return _curColumn;
     }
     
     private void next()

@@ -1,6 +1,10 @@
 location "TestName"
 {
-	
+	command "Test"
+	{
+		print 31;
+		print 42
+	}
 }
 
 location "Start"

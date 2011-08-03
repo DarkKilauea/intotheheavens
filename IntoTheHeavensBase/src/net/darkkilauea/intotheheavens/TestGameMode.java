@@ -26,8 +26,8 @@ public class TestGameMode extends GameMode implements ICommandListener
         
         try
         {
-            LocationFileParser parser = new LocationFileParser();
-            parser.parseFile("base/testLocationStart.txt");
+            LocationFileParser parser = new LocationFileParser("base/testLocationStart.txt");
+            parser.parseFile();
         }
         catch (Exception ex) 
         {

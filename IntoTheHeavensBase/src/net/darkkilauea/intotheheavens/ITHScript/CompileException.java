@@ -14,8 +14,8 @@ public class CompileException extends Exception
      * Constructs an instance of <code>CompileException</code> with the specified detail message.
      * @param msg the detail message.
      */
-    public CompileException(String msg, String filename, int line) 
+    public CompileException(String msg, String filename, int line, int column) 
     {
-        super(filename + ":" + line + ": " + msg);
+        super("[" + filename + " Line:" + line + " Col:" + column + "]: " + msg);
     }
 }
