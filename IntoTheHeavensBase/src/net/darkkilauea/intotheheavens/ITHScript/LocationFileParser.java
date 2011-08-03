@@ -5,10 +5,8 @@
 package net.darkkilauea.intotheheavens.ITHScript;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.LineNumberReader;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -32,7 +30,7 @@ public class LocationFileParser
         _currentFile = filename;
     }
     
-    public List<Location> parseFile() throws FileNotFoundException, CompileException, IOException
+    public List<Location> parseFile() throws CompileException, IOException
     {
         List<Location> locations = new ArrayList<Location>();
         FileReader fileReader = new FileReader(_currentFile);
@@ -127,7 +125,7 @@ public class LocationFileParser
         
         if(_token == Lexer.TK_STRING_LITERAL)
         {
-            return new Statement();
+            return new GotoStatement(lex.getStringValue());
         }
         else throw new CompileException("Expected string constant after goto.", _currentFile, lex.getLineNumber(), lex.getColumnNumber());
     }

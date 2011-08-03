@@ -31,11 +31,11 @@ public class TestGameMode extends GameMode implements ICommandListener
         }
         catch (Exception ex) 
         {
-            String message = ex.getMessage();
+            //String message = ex.getMessage();
             
             for(IGameModeListener listener : _listeners)
             {
-                listener.onTextOutput("Exception Caught: " + message);
+                listener.onTextOutput("Exception Caught: " + ex.toString());
             }
         }
         

@@ -36,4 +36,10 @@ public class PrintStatement extends Statement
     {
         _message = message;
     }
+
+    @Override
+    public String toString() 
+    {
+        return "PrintStatement{" + "_message=" + _message + '}';
+    }
 }
