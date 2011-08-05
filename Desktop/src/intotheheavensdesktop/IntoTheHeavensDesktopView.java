@@ -19,7 +19,7 @@ import javax.swing.JDialog;
 import javax.swing.JFrame;
 import net.darkkilauea.intotheheavens.GameModeManager;
 import net.darkkilauea.intotheheavens.IGameModeListener;
-import net.darkkilauea.intotheheavens.TestGameMode;
+import net.darkkilauea.intotheheavens.MainGameMode;
 
 /**
  * The application's main frame.
@@ -27,7 +27,7 @@ import net.darkkilauea.intotheheavens.TestGameMode;
 public class IntoTheHeavensDesktopView extends FrameView implements IGameModeListener
 {
     private GameModeManager _manager = new GameModeManager();
-    private TestGameMode _testMode = new TestGameMode();
+    private MainGameMode _mainMode = null;
     
     public IntoTheHeavensDesktopView(SingleFrameApplication app) 
     {
@@ -101,9 +101,23 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
             }
         });
         
-        _testMode.registerListener(this);
-        _manager.registerGameMode("Test", _testMode);
-        _manager.setActiveMode("Test");
+        IntoTheHeavensDesktopApp application = IntoTheHeavensDesktopApp.getApplication();
+        String[] args = application.getArgs();
+        
+        String contentDir = "base\\";
+        for(int i = 0; i<args.length; i++)
+        {
+            if(args[i].endsWith("gamedir"))
+            {
+                contentDir = args[i + 1];
+                break;
+            }
+        }
+        
+        _mainMode = new MainGameMode(contentDir);
+        _mainMode.registerListener(this);
+        _manager.registerGameMode("Main", _mainMode);
+        _manager.setActiveMode("Main");
     }
 
     @Action

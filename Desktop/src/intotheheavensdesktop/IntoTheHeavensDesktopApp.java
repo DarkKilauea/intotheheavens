@@ -12,6 +12,19 @@ import org.jdesktop.application.SingleFrameApplication;
  */
 public class IntoTheHeavensDesktopApp extends SingleFrameApplication 
 {
+    protected String[] _args = null;
+    
+    public String[] getArgs()
+    {
+        return _args;
+    }
+    
+    @Override
+    protected void initialize(String[] args)
+    {
+        _args = args;
+    }
+    
     /**
      * At startup create and show the main frame of the application.
      */

@@ -4,6 +4,8 @@ location "TestName"
 	{
 		print 31;
 		print 42
+		
+		goto "Start"
 	}
 }
 
