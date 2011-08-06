@@ -5,27 +5,27 @@
 package net.darkkilauea.intotheheavens;
 
 import net.darkkilauea.intotheheavens.commands.ICommandListener;
-import net.darkkilauea.intotheheavens.commands.Command;
-import net.darkkilauea.intotheheavens.commands.HelpCommand;
-import net.darkkilauea.intotheheavens.commands.CommandLayer;
-import java.io.File;
-import java.util.List;
-import net.darkkilauea.intotheheavens.ITHScript.Location;
-import net.darkkilauea.intotheheavens.ITHScript.LocationFileParser;
+import net.darkkilauea.intotheheavens.commands.*;
 
 /**
  *
  * @author joshua
  */
-public class MainGameMode extends GameMode implements ICommandListener
+public class MenuGameMode extends GameMode implements ICommandListener
 {
     private CommandLayer _commandLayer = new CommandLayer();
-    private WorldState _world = new WorldState();
     private String _rootDir = "base\\";
+    private String _scriptDir = _rootDir + "scripts\\";
+    private String _saveDir = _rootDir + "savegames\\";
     
-    public MainGameMode(String rootDir)
+    public MenuGameMode(String rootDir)
     {
-        _rootDir = rootDir;
+        if(_rootDir != null)
+        {
+            _rootDir = rootDir;
+            _scriptDir = _rootDir + "scripts\\";
+            _saveDir = _rootDir + "savegames\\";
+        }
     }
     
     @Override
@@ -34,22 +34,27 @@ public class MainGameMode extends GameMode implements ICommandListener
         try
         {
             super.initialize(manager);
-
+            
             Command helpCommand = new HelpCommand("Help");
             helpCommand.registerListener(this);
+        
+            Command newGameCommand = new NewGameCommand("New_Game");
+            newGameCommand.registerListener(this);
+            
+            Command saveGameCommand = new SaveGameCommand("Save_Game");
+            saveGameCommand.registerListener(this);
+            
+            Command loadGameCommand = new LoadGameCommand("Load_Game");
+            loadGameCommand.registerListener(this);
+            
+            Command quitGameCommand = new QuitGameCommand("Quit_Game");
+            quitGameCommand.registerListener(this);
 
             _commandLayer.registerCommand(helpCommand);
-            
-            File gameDataRoot = new File(_rootDir);
-            for(File file : gameDataRoot.listFiles())
-            {
-                if(file.isFile() && file.getName().endsWith(".txt"))
-                {
-                    LocationFileParser parser = new LocationFileParser(file.getPath());
-                    List<Location> locations = parser.parseFile();
-                    _world.getLocations().addAll(locations);
-                }
-            }
+            _commandLayer.registerCommand(newGameCommand);
+            _commandLayer.registerCommand(saveGameCommand);
+            _commandLayer.registerCommand(loadGameCommand);
+            _commandLayer.registerCommand(quitGameCommand);
         }
         catch (Exception ex) 
         {
@@ -77,10 +82,17 @@ public class MainGameMode extends GameMode implements ICommandListener
     @Override
     public void shutdown()
     {
-        Command helpCommand = _commandLayer.getCommand("Help");
-        helpCommand.unregisterListener(this);
+        _commandLayer.getCommand("Help").unregisterListener(this);
+        _commandLayer.getCommand("New_Game").unregisterListener(this);
+        _commandLayer.getCommand("Save_Game").unregisterListener(this);
+        _commandLayer.getCommand("Load_Game").unregisterListener(this);
+        _commandLayer.getCommand("Quit_Game").unregisterListener(this);
         
         _commandLayer.unregisterCommand("Help");
+        _commandLayer.unregisterCommand("New_Game");
+        _commandLayer.unregisterCommand("Save_Game");
+        _commandLayer.unregisterCommand("Load_Game");
+        _commandLayer.unregisterCommand("Quit_Game");
         
         super.shutdown();
     }
@@ -92,7 +104,13 @@ public class MainGameMode extends GameMode implements ICommandListener
         {
             if(_commandLayer.checkCommandStringSupported(input))
             {
-                _commandLayer.executeCommand(input);
+                if(!_commandLayer.executeCommand(input))
+                {
+                    for(IGameModeListener listener : _listeners)
+                    {
+                        listener.onTextOutput("Incorrect syntax.  Type \"help <command>\" for details.");
+                    }
+                }
             }
             else
             {
@@ -119,13 +137,13 @@ public class MainGameMode extends GameMode implements ICommandListener
                 String commandName = (String)command.getParameters().get("Command");
                 Command target = _commandLayer.getCommand(commandName);
                 if(target != null) 
-                    output = "Description: " + target.getDescription() + "\n" + target.getHelpText();
+                    output = target.getHelpText() + "\n" + "Description: " + target.getDescription();
                 else 
                     output = "No command of that name could be found, type \"help\" for a list of available commands.";
             }
             else
             {
-                output = "List of available commands: \n";
+                output = "List of available commands: \n\n";
 
                 for(Command aCommand : _commandLayer.getCommands())
                 {
@@ -134,6 +152,22 @@ public class MainGameMode extends GameMode implements ICommandListener
                 
                 output = output.substring(0, output.length() - 1);
             }
+        }
+        else if(command.getName().equalsIgnoreCase("New_Game"))
+        {
+            output = "This command has not been fully implemented yet.";
+        }
+        else if(command.getName().equalsIgnoreCase("Load_Game"))
+        {
+            output = "This command has not been fully implemented yet.";
+        }
+        else if(command.getName().equalsIgnoreCase("Save_Game"))
+        {
+            output = "This command has not been fully implemented yet.";
+        }
+        else if(command.getName().equalsIgnoreCase("Quit_Game"))
+        {
+            output = "This command has not been fully implemented yet.";
         }
         else
         {

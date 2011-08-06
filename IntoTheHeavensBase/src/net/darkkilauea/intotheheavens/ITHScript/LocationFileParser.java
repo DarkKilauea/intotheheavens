@@ -19,7 +19,7 @@ import java.util.List;
 public class LocationFileParser 
 {
     private int _token = 0;
-    private Deque _stack = new ArrayDeque();
+    private Deque<Object> _stack = new ArrayDeque<Object>();
     private String _currentFile = null;
     
     private char _blockStart = '{';
@@ -50,7 +50,7 @@ public class LocationFileParser
                     {
                         Location loc = new Location(name);
                         locations.add(loc);
-                        _stack.push(loc);
+                        _stack.push((Object)loc);
                     }
                     else throw new CompileException("Block start \"{\" expected.", _currentFile, lex.getLineNumber(), lex.getColumnNumber());
                 }
@@ -68,7 +68,7 @@ public class LocationFileParser
                         
                         Location parent = getTopLocation();
                         parent.getCommandHandlers().add(handler);
-                        _stack.push(handler);
+                        _stack.push((Object)handler);
                     }
                     else throw new CompileException("Block start \"{\" expected.", _currentFile, lex.getLineNumber(), lex.getColumnNumber());
                 }

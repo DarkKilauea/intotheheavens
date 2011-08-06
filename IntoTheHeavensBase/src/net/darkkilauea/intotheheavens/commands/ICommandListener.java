@@ -2,7 +2,9 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.darkkilauea.intotheheavens;
+package net.darkkilauea.intotheheavens.commands;
+
+import net.darkkilauea.intotheheavens.commands.Command;
 
 /**
  *

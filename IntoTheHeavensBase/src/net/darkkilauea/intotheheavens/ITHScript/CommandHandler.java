@@ -6,6 +6,7 @@ package net.darkkilauea.intotheheavens.ITHScript;
 
 import java.util.ArrayList;
 import java.util.List;
+import net.darkkilauea.intotheheavens.ITHScript.Statement;
 
 /**
  *

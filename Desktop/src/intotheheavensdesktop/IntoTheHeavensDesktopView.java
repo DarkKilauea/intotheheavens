@@ -17,9 +17,7 @@ import javax.swing.Timer;
 import javax.swing.Icon;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
-import net.darkkilauea.intotheheavens.GameModeManager;
-import net.darkkilauea.intotheheavens.IGameModeListener;
-import net.darkkilauea.intotheheavens.MainGameMode;
+import net.darkkilauea.intotheheavens.*;
 
 /**
  * The application's main frame.
@@ -27,7 +25,7 @@ import net.darkkilauea.intotheheavens.MainGameMode;
 public class IntoTheHeavensDesktopView extends FrameView implements IGameModeListener
 {
     private GameModeManager _manager = new GameModeManager();
-    private MainGameMode _mainMode = null;
+    private MenuGameMode _menuMode = null;
     
     public IntoTheHeavensDesktopView(SingleFrameApplication app) 
     {
@@ -114,10 +112,10 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
             }
         }
         
-        _mainMode = new MainGameMode(contentDir);
-        _mainMode.registerListener(this);
-        _manager.registerGameMode("Main", _mainMode);
-        _manager.setActiveMode("Main");
+        _menuMode = new MenuGameMode(contentDir);
+        _menuMode.registerListener(this);
+        _manager.registerGameMode("Menu", _menuMode);
+        _manager.setActiveMode("Menu");
     }
 
     @Action

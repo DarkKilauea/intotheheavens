@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.darkkilauea.intotheheavens;
+package net.darkkilauea.intotheheavens.commands;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -11,11 +11,11 @@ import java.util.regex.Pattern;
  *
  * @author joshua
  */
-public class HelpCommand extends Command 
+public class NewGameCommand extends Command 
 {
-    Pattern _regex = Pattern.compile("^help\\s*(\\w+)?\\s*$", Pattern.CASE_INSENSITIVE);
+    Pattern _regex = Pattern.compile("^new_game\\s*(\\w+)?\\s*$", Pattern.CASE_INSENSITIVE);
     
-    public HelpCommand(String name)
+    public NewGameCommand(String name)
     {
         super(name);
     }
@@ -35,7 +35,7 @@ public class HelpCommand extends Command
         if(matcher.matches())
         {
             String parameter = matcher.group(1);
-            if(parameter != null) _parameters.put("Command", parameter);
+            if(parameter != null) _parameters.put("Name", parameter);
             
             return true;
         }
@@ -46,12 +46,12 @@ public class HelpCommand extends Command
     @Override
     public String getDescription()
     {
-        return "Lists all commands with descriptions or more detail about a single command.";
+        return "Starts a new game, will create an initial save if a save name is specified.";
     }
     
     @Override
     public String getHelpText()
     {
-        return "Usage: help <command>";
+        return "Usage: new_game <game name>";
     }
 }
