@@ -2,9 +2,9 @@ location "Start"
 {
 	event "OnEnter"
 	{
-		print "You find yourself in a forest.
-		
-		There is a opening in the foliage to the west.";
+		print "You find yourself in a forest."
+		print ""
+		print "There is a opening in the foliage to the east."
 	}
 	
 	command "North"
@@ -33,9 +33,9 @@ location "East Of Start"
 {
 	event "OnEnter"
 	{
-		print "You find yourself in a clearing.
-		
-		There is a opening in the foliage to the east.";
+		print "You find yourself in a clearing."
+		print ""
+		print "There is a opening in the foliage to the west.";
 	}
 	
 	command "North"

@@ -25,6 +25,7 @@ public class GameMode
     protected GameModeManager _manager = null;
     protected State _state = State.Unknown;
     protected List<IGameModeListener> _listeners = new ArrayList<IGameModeListener>();
+    protected List<Command> _commands = new ArrayList<Command>();
     
     public boolean initialize(GameModeManager manager)
     {
@@ -68,6 +69,36 @@ public class GameMode
     public void injectTextInput(String input)
     {
         
+    }
+    
+    public Command getCommandForName(String name)
+    {
+        Command item = null;
+        for(Command command : _commands)
+        {
+            if(command.getName().equalsIgnoreCase(name))
+            {
+                item = command;
+                break;
+            }
+        }
+        
+        return item;
+    }
+    
+    public Command getCommandThatHandlesString(String text)
+    {
+        Command item = null;
+        for(Command command : _commands)
+        {
+            if(command.willHandleCommandString(text))
+            {
+                item = command;
+                break;
+            }
+        }
+        
+        return item;
     }
     
     protected void printToAllListeners(String message)

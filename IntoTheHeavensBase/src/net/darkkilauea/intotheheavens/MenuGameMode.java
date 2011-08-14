@@ -5,15 +5,13 @@
 package net.darkkilauea.intotheheavens;
 
 import net.darkkilauea.intotheheavens.ITHScript.*;
-import net.darkkilauea.intotheheavens.commands.*;
 
 /**
  *
  * @author joshua
  */
-public class MenuGameMode extends GameMode implements ICommandListener
+public class MenuGameMode extends GameMode
 {
-    private CommandLayer _commandLayer = new CommandLayer();
     private String _rootDir = "base\\";
     private String _scriptDir = _rootDir + "scripts\\";
     private String _saveDir = _rootDir + "savegames\\";
@@ -33,26 +31,26 @@ public class MenuGameMode extends GameMode implements ICommandListener
     {
         super.initialize(manager);
 
-        Command helpCommand = new HelpCommand("Help");
-        helpCommand.registerListener(this);
-
-        Command newGameCommand = new NewGameCommand("New_Game");
-        newGameCommand.registerListener(this);
-
-        Command saveGameCommand = new SaveGameCommand("Save_Game");
-        saveGameCommand.registerListener(this);
-
-        Command loadGameCommand = new LoadGameCommand("Load_Game");
-        loadGameCommand.registerListener(this);
-
-        Command quitGameCommand = new QuitGameCommand("Quit_Game");
-        quitGameCommand.registerListener(this);
-
-        _commandLayer.registerCommand(helpCommand);
-        _commandLayer.registerCommand(newGameCommand);
-        _commandLayer.registerCommand(saveGameCommand);
-        _commandLayer.registerCommand(loadGameCommand);
-        _commandLayer.registerCommand(quitGameCommand);
+        _commands.add(new Command("Help", 
+                                  "^help\\s*(\\w+)?\\s*$", 
+                                  "Lists all commands with descriptions or more detail about a single command.", 
+                                  "Usage: help <command>"));
+        _commands.add(new Command("New_Game", 
+                                  "^new_game\\s*(\\w+)?\\s*$", 
+                                  "Starts a new game, will create an initial save if a save name is specified.", 
+                                  "Usage: new_game <game name>"));
+        _commands.add(new Command("Save_Game", 
+                                  "^save_game\\s*(\\w+)?\\s*$", 
+                                  "Saves the game to the current save name, or another name if specified.", 
+                                  "Usage: save_game <game name>"));
+        _commands.add(new Command("Load_Game", 
+                                  "^load_game\\s*(\\w+)?\\s*$", 
+                                  "Loads a game from the specified save name.", 
+                                  "Usage: load_game [game name]"));
+        _commands.add(new Command("Quit_Game", 
+                                  "^(?:quit|exit)\\s*$", 
+                                  "Quits the current game.  If in the menu, also exits the application.", 
+                                  "Usage: quit|exit"));
         
         return true;
     }
@@ -72,18 +70,6 @@ public class MenuGameMode extends GameMode implements ICommandListener
     @Override
     public void shutdown()
     {
-        _commandLayer.getCommand("Help").unregisterListener(this);
-        _commandLayer.getCommand("New_Game").unregisterListener(this);
-        _commandLayer.getCommand("Save_Game").unregisterListener(this);
-        _commandLayer.getCommand("Load_Game").unregisterListener(this);
-        _commandLayer.getCommand("Quit_Game").unregisterListener(this);
-        
-        _commandLayer.unregisterCommand("Help");
-        _commandLayer.unregisterCommand("New_Game");
-        _commandLayer.unregisterCommand("Save_Game");
-        _commandLayer.unregisterCommand("Load_Game");
-        _commandLayer.unregisterCommand("Quit_Game");
-        
         super.shutdown();
     }
     
@@ -92,16 +78,18 @@ public class MenuGameMode extends GameMode implements ICommandListener
     {
         try
         {
-            if(_commandLayer.checkCommandStringSupported(input))
+            Command command = getCommandThatHandlesString(input);
+            if(command != null)
             {
-                if(!_commandLayer.executeCommand(input))
+                if(command.parseCommandString(input))
                 {
-                    printToAllListeners("Incorrect syntax.  Type \"help <command>\" for details.");
+                    onCommandExecuted(command);
                 }
+                else printToAllListeners("Incorrect syntax.  Type \"help <command>\" for details.");
             }
             else
             {
-                onCommandExecuted(new Command(""));
+                onCommandExecuted(new Command());
             }
         }
         catch (Exception ex) 
@@ -110,18 +98,17 @@ public class MenuGameMode extends GameMode implements ICommandListener
         }
     }
 
-    @Override
     public void onCommandExecuted(Command command) 
     {
         String output = null;
         if(command.getName().equalsIgnoreCase("Help"))
         {
-            if(command.getParameters().containsKey("Command"))
+            if(command.getParameters().size() > 0)
             {
-                String commandName = (String)command.getParameters().get("Command");
-                Command target = _commandLayer.getCommand(commandName);
+                String commandName = (String)command.getParameters().get(0);
+                Command target = getCommandForName(commandName);
                 if(target != null) 
-                    output = target.getHelpText() + "\n" + "Description: " + target.getDescription();
+                    output = target.getUsageHelp() + "\n" + "Description: " + target.getDescription();
                 else 
                     output = "No command of that name could be found, type \"help\" for a list of available commands.";
             }
@@ -129,7 +116,7 @@ public class MenuGameMode extends GameMode implements ICommandListener
             {
                 output = "List of available commands: \n\n";
 
-                for(Command aCommand : _commandLayer.getCommands())
+                for(Command aCommand : _commands)
                 {
                     output += aCommand.getName() + ": " + aCommand.getDescription() + "\n";
                 }

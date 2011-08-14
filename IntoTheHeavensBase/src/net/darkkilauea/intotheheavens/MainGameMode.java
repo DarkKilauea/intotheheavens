@@ -4,16 +4,16 @@
  */
 package net.darkkilauea.intotheheavens;
 
-import net.darkkilauea.intotheheavens.commands.*;
+import net.darkkilauea.intotheheavens.ITHScript.*;
 
 /**
  *
  * @author joshua
  */
-public class MainGameMode extends GameMode implements ICommandListener
+public class MainGameMode extends GameMode implements IVirtualMachineListener
 {
-    private CommandLayer _commandLayer = new CommandLayer();
     private WorldState _world = new WorldState();
+    private VirtualMachine _vm = new VirtualMachine();
     
     public MainGameMode()
     {
@@ -24,11 +24,29 @@ public class MainGameMode extends GameMode implements ICommandListener
     public boolean initialize(GameModeManager manager)
     {
         super.initialize(manager);
+        
+        _vm.registerListener(this);
 
-        Command helpCommand = new HelpCommand("Help");
-        helpCommand.registerListener(this);
-
-        _commandLayer.registerCommand(helpCommand);
+        _commands.add(new Command("Help", 
+                                  "^help\\s*(\\w+)?\\s*$", 
+                                  "Lists all commands with descriptions or more detail about a single command.", 
+                                  "Usage: help <command>"));
+        _commands.add(new Command("North", 
+                                  "^north\\s*$", 
+                                  "Travels north of your current location.", 
+                                  "Usage: north"));
+        _commands.add(new Command("East", 
+                                  "^east\\s*$", 
+                                  "Travels east of your current location.", 
+                                  "Usage: east"));
+        _commands.add(new Command("South", 
+                                  "^south\\s*$", 
+                                  "Travels south of your current location.", 
+                                  "Usage: south"));
+        _commands.add(new Command("West", 
+                                  "^west\\s*$", 
+                                  "Travels west of your current location.", 
+                                  "Usage: west"));
         
         return true;
     }
@@ -48,10 +66,7 @@ public class MainGameMode extends GameMode implements ICommandListener
     @Override
     public void shutdown()
     {
-        Command helpCommand = _commandLayer.getCommand("Help");
-        helpCommand.unregisterListener(this);
-        
-        _commandLayer.unregisterCommand("Help");
+        _vm.unregisterListener(this);
         
         super.shutdown();
     }
@@ -61,13 +76,18 @@ public class MainGameMode extends GameMode implements ICommandListener
     {
         try
         {
-            if(_commandLayer.checkCommandStringSupported(input))
+            Command command = getCommandThatHandlesString(input);
+            if(command != null)
             {
-                _commandLayer.executeCommand(input);
+                if(command.parseCommandString(input))
+                {
+                    onCommandExecuted(command);
+                }
+                else printToAllListeners("Incorrect syntax.  Type \"help <command>\" for details.");
             }
             else
             {
-                onCommandExecuted(new Command(""));
+                onCommandExecuted(new Command());
             }
         }
         catch (Exception ex) 
@@ -76,45 +96,102 @@ public class MainGameMode extends GameMode implements ICommandListener
         }
     }
 
-    @Override
     public void onCommandExecuted(Command command) 
     {
-        String output = null;
         if(command.getName().equalsIgnoreCase("Help"))
         {
-            if(command.getParameters().containsKey("Command"))
+            String output = "";
+            if(command.getParameters().size() > 0)
             {
-                String commandName = (String)command.getParameters().get("Command");
-                Command target = _commandLayer.getCommand(commandName);
+                String commandName = (String)command.getParameters().get(0);
+                Command target = getCommandForName(commandName);
                 if(target != null) 
-                    output = "Description: " + target.getDescription() + "\n" + target.getHelpText();
+                    output = target.getUsageHelp() + "\n" + "Description: " + target.getDescription();
                 else 
                     output = "No command of that name could be found, type \"help\" for a list of available commands.";
             }
             else
             {
-                output = "List of available commands: \n";
+                output = "List of available commands: \n\n";
 
-                for(Command aCommand : _commandLayer.getCommands())
+                for(Command aCommand : _commands)
                 {
                     output += aCommand.getName() + ": " + aCommand.getDescription() + "\n";
                 }
                 
                 output = output.substring(0, output.length() - 1);
             }
+            
+            printToAllListeners(output);
+        }
+        else if (command.getName().equalsIgnoreCase("North"))
+        {
+            executeCommandHandler("North");
+        }
+        else if (command.getName().equalsIgnoreCase("East"))
+        {
+            executeCommandHandler("East");
+        }
+        else if (command.getName().equalsIgnoreCase("South"))
+        {
+            executeCommandHandler("South");
+        }
+        else if (command.getName().equalsIgnoreCase("West"))
+        {
+            executeCommandHandler("West");
         }
         else
         {
-            output = "Command not recognized, type \"help\" for a list of available commands.";
+            printToAllListeners("Command not recognized, type \"help\" for a list of available commands.");
         }
-        
-        printToAllListeners(output);
+    }
+    
+    private void executeCommandHandler(String name)
+    {
+        Location curLocation = _world.getCurrentLocation();
+        if(curLocation != null)
+        {
+            CommandHandler handler = curLocation.getCommandHandler(name);
+            if(handler != null) _vm.executeStatementBlock(handler);
+        }
     }
     
     public void loadFromWorldState(WorldState world)
     {
         _world = world;
         
-        //TODO: Call the init method of the current location's script
+        Location curLocation = _world.getCurrentLocation();
+        if(curLocation != null)
+        {
+            EventHandler onEnter = curLocation.getEventHandler("OnEnter");
+            if(onEnter != null) _vm.executeStatementBlock(onEnter);
+        }
+    }
+
+    @Override
+    public void onInvokePrint(String message) 
+    {
+        printToAllListeners(message);
+    }
+
+    @Override
+    public void onInvokeGoto(String locationName) 
+    {
+        Location curLocation = _world.getCurrentLocation();
+        if(curLocation != null)
+        {
+            EventHandler onLeave = curLocation.getEventHandler("OnLeave");
+            if(onLeave != null) _vm.executeStatementBlock(onLeave);
+        }
+        
+        Location newLocation = _world.findLocation(locationName);
+        if(newLocation != null)
+        {
+            EventHandler onEnter = newLocation.getEventHandler("OnEnter");
+            if(onEnter != null) _vm.executeStatementBlock(onEnter);
+            
+            _world.setCurrentLocation(newLocation);
+        }
+        else printToAllListeners("Runtime Error: Location \"" + locationName + "\" could not be found!");
     }
 }

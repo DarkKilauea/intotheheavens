@@ -56,6 +56,36 @@ public class Location
     {
         return _eventHandlers;
     }
+    
+    public CommandHandler getCommandHandler(String commandName)
+    {
+        CommandHandler item = null;
+        for(CommandHandler handler : _commandHandlers)
+        {
+            if(handler.getName().equals(commandName))
+            {
+                item = handler;
+                break;
+            }
+        }
+        
+        return item;
+    }
+    
+    public EventHandler getEventHandler(String eventName)
+    {
+        EventHandler item = null;
+        for(EventHandler handler : _eventHandlers)
+        {
+            if(handler.getName().equals(eventName))
+            {
+                item = handler;
+                break;
+            }
+        }
+        
+        return item;
+    }
 
     public Location(String name)
     {
