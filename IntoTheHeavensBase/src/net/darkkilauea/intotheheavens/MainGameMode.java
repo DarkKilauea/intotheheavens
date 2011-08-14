@@ -4,14 +4,7 @@
  */
 package net.darkkilauea.intotheheavens;
 
-import net.darkkilauea.intotheheavens.commands.ICommandListener;
-import net.darkkilauea.intotheheavens.commands.Command;
-import net.darkkilauea.intotheheavens.commands.HelpCommand;
-import net.darkkilauea.intotheheavens.commands.CommandLayer;
-import java.io.File;
-import java.util.List;
-import net.darkkilauea.intotheheavens.ITHScript.Location;
-import net.darkkilauea.intotheheavens.ITHScript.LocationFileParser;
+import net.darkkilauea.intotheheavens.commands.*;
 
 /**
  *
@@ -21,43 +14,21 @@ public class MainGameMode extends GameMode implements ICommandListener
 {
     private CommandLayer _commandLayer = new CommandLayer();
     private WorldState _world = new WorldState();
-    private String _rootDir = "base\\";
     
-    public MainGameMode(String rootDir)
+    public MainGameMode()
     {
-        _rootDir = rootDir;
+        
     }
     
     @Override
     public boolean initialize(GameModeManager manager)
     {
-        try
-        {
-            super.initialize(manager);
+        super.initialize(manager);
 
-            Command helpCommand = new HelpCommand("Help");
-            helpCommand.registerListener(this);
+        Command helpCommand = new HelpCommand("Help");
+        helpCommand.registerListener(this);
 
-            _commandLayer.registerCommand(helpCommand);
-            
-            File gameDataRoot = new File(_rootDir);
-            for(File file : gameDataRoot.listFiles())
-            {
-                if(file.isFile() && file.getName().endsWith(".txt"))
-                {
-                    LocationFileParser parser = new LocationFileParser(file.getPath());
-                    List<Location> locations = parser.parseFile();
-                    _world.getLocations().addAll(locations);
-                }
-            }
-        }
-        catch (Exception ex) 
-        {
-            for(IGameModeListener listener : _listeners)
-            {
-                listener.onTextOutput("Exception Caught: " + ex.toString());
-            }
-        }
+        _commandLayer.registerCommand(helpCommand);
         
         return true;
     }
@@ -101,10 +72,7 @@ public class MainGameMode extends GameMode implements ICommandListener
         }
         catch (Exception ex) 
         {
-            for(IGameModeListener listener : _listeners)
-            {
-                listener.onTextOutput("Exception Caught: " + ex.toString());
-            }
+            printToAllListeners("Exception Caught: " + ex.toString());
         }
     }
 
@@ -140,9 +108,13 @@ public class MainGameMode extends GameMode implements ICommandListener
             output = "Command not recognized, type \"help\" for a list of available commands.";
         }
         
-        for(IGameModeListener listener : _listeners)
-        {
-            listener.onTextOutput(output);
-        }
+        printToAllListeners(output);
+    }
+    
+    public void loadFromWorldState(WorldState world)
+    {
+        _world = world;
+        
+        //TODO: Call the init method of the current location's script
     }
 }

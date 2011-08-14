@@ -4,9 +4,13 @@
  */
 package net.darkkilauea.intotheheavens;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import net.darkkilauea.intotheheavens.ITHScript.CompileException;
 import net.darkkilauea.intotheheavens.ITHScript.Location;
+import net.darkkilauea.intotheheavens.ITHScript.LocationFileParser;
 
 /**
  *
@@ -15,6 +19,7 @@ import net.darkkilauea.intotheheavens.ITHScript.Location;
 public class WorldState 
 {
     private List<Location> _locations = new ArrayList<Location>();
+    protected Location _currentLocation = null;
 
     /**
      * Get the value of locations
@@ -25,5 +30,51 @@ public class WorldState
     {
         return _locations;
     }
+    
+    /**
+     * Get the value of currentLocation
+     *
+     * @return the value of currentLocation
+     */
+    public Location getCurrentLocation() 
+    {
+        return _currentLocation;
+    }
 
+    /**
+     * Set the value of currentLocation
+     *
+     * @param currentLocation new value of currentLocation
+     */
+    public void setCurrentLocation(Location location) 
+    {
+        _currentLocation = location;
+    }
+    
+    public Location findLocation(String name) 
+    {
+        for(Location loc : _locations)
+        {
+            if(loc.getName().equals(name))
+            {
+                return loc;
+            }
+        }
+        
+        return null;
+    }
+    
+    public void loadLocations(String locationDir) throws CompileException, IOException
+    {
+        File gameDataRoot = new File(locationDir);
+        for(File file : gameDataRoot.listFiles())
+        {
+            if(file.isFile() && file.getName().endsWith(".loc"))
+            {
+                LocationFileParser parser = new LocationFileParser(file.getPath());
+                List<Location> locations = parser.parseFile();
+                _locations.addAll(locations);
+            }
+        }
+    }
 }

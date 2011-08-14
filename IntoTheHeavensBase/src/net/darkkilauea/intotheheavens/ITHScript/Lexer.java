@@ -43,6 +43,7 @@ public class Lexer
     public static int TK_IDENTIFIER = 283;
     public static int TK_PRINT = 284;
     public static int TK_GOTO = 285;
+    public static int TK_EVENT = 286;
     
     private Reader _reader = null;
     private char _curCharacter = '\0';
@@ -75,6 +76,7 @@ public class Lexer
         _keywords.put("no", TK_FALSE);
         _keywords.put("print", TK_PRINT);
         _keywords.put("goto", TK_GOTO);
+        _keywords.put("event", TK_EVENT);
         
         next();
     }

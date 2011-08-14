@@ -69,4 +69,12 @@ public class GameMode
     {
         
     }
+    
+    protected void printToAllListeners(String message)
+    {
+        for(IGameModeListener listener : _listeners)
+        {
+            listener.onTextOutput(message);
+        }
+    }
 }

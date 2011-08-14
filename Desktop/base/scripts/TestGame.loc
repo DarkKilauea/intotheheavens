@@ -1,16 +1,12 @@
-location "TestName"
-{
-	command "Test"
-	{
-		print 31;
-		print 42
-		
-		goto "Start"
-	}
-}
-
 location "Start"
 {
+	event "OnEnter"
+	{
+		print "You find yourself in a forest.
+		
+		There is a opening in the foliage to the west.";
+	}
+	
 	command "North"
 	{
 		print "You cannot go north."
@@ -35,6 +31,13 @@ location "Start"
 
 location "East Of Start"
 {
+	event "OnEnter"
+	{
+		print "You find yourself in a clearing.
+		
+		There is a opening in the foliage to the east.";
+	}
+	
 	command "North"
 	{
 		print "You still cannot go north."

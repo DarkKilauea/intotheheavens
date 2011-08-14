@@ -4,7 +4,7 @@
  */
 package net.darkkilauea.intotheheavens;
 
-import net.darkkilauea.intotheheavens.commands.ICommandListener;
+import net.darkkilauea.intotheheavens.ITHScript.*;
 import net.darkkilauea.intotheheavens.commands.*;
 
 /**
@@ -31,38 +31,28 @@ public class MenuGameMode extends GameMode implements ICommandListener
     @Override
     public boolean initialize(GameModeManager manager)
     {
-        try
-        {
-            super.initialize(manager);
-            
-            Command helpCommand = new HelpCommand("Help");
-            helpCommand.registerListener(this);
-        
-            Command newGameCommand = new NewGameCommand("New_Game");
-            newGameCommand.registerListener(this);
-            
-            Command saveGameCommand = new SaveGameCommand("Save_Game");
-            saveGameCommand.registerListener(this);
-            
-            Command loadGameCommand = new LoadGameCommand("Load_Game");
-            loadGameCommand.registerListener(this);
-            
-            Command quitGameCommand = new QuitGameCommand("Quit_Game");
-            quitGameCommand.registerListener(this);
+        super.initialize(manager);
 
-            _commandLayer.registerCommand(helpCommand);
-            _commandLayer.registerCommand(newGameCommand);
-            _commandLayer.registerCommand(saveGameCommand);
-            _commandLayer.registerCommand(loadGameCommand);
-            _commandLayer.registerCommand(quitGameCommand);
-        }
-        catch (Exception ex) 
-        {
-            for(IGameModeListener listener : _listeners)
-            {
-                listener.onTextOutput("Exception Caught: " + ex.toString());
-            }
-        }
+        Command helpCommand = new HelpCommand("Help");
+        helpCommand.registerListener(this);
+
+        Command newGameCommand = new NewGameCommand("New_Game");
+        newGameCommand.registerListener(this);
+
+        Command saveGameCommand = new SaveGameCommand("Save_Game");
+        saveGameCommand.registerListener(this);
+
+        Command loadGameCommand = new LoadGameCommand("Load_Game");
+        loadGameCommand.registerListener(this);
+
+        Command quitGameCommand = new QuitGameCommand("Quit_Game");
+        quitGameCommand.registerListener(this);
+
+        _commandLayer.registerCommand(helpCommand);
+        _commandLayer.registerCommand(newGameCommand);
+        _commandLayer.registerCommand(saveGameCommand);
+        _commandLayer.registerCommand(loadGameCommand);
+        _commandLayer.registerCommand(quitGameCommand);
         
         return true;
     }
@@ -106,10 +96,7 @@ public class MenuGameMode extends GameMode implements ICommandListener
             {
                 if(!_commandLayer.executeCommand(input))
                 {
-                    for(IGameModeListener listener : _listeners)
-                    {
-                        listener.onTextOutput("Incorrect syntax.  Type \"help <command>\" for details.");
-                    }
+                    printToAllListeners("Incorrect syntax.  Type \"help <command>\" for details.");
                 }
             }
             else
@@ -119,10 +106,7 @@ public class MenuGameMode extends GameMode implements ICommandListener
         }
         catch (Exception ex) 
         {
-            for(IGameModeListener listener : _listeners)
-            {
-                listener.onTextOutput("Exception Caught: " + ex.toString());
-            }
+            printToAllListeners("Exception Caught: " + ex.toString());
         }
     }
 
@@ -155,7 +139,8 @@ public class MenuGameMode extends GameMode implements ICommandListener
         }
         else if(command.getName().equalsIgnoreCase("New_Game"))
         {
-            output = "This command has not been fully implemented yet.";
+            newGame();
+            return;
         }
         else if(command.getName().equalsIgnoreCase("Load_Game"))
         {
@@ -174,9 +159,33 @@ public class MenuGameMode extends GameMode implements ICommandListener
             output = "Command not recognized, type \"help\" for a list of available commands.";
         }
         
-        for(IGameModeListener listener : _listeners)
+        printToAllListeners(output);
+    }
+    
+    public void newGame()
+    {   
+        try
         {
-            listener.onTextOutput(output);
+            WorldState world = new WorldState();
+            world.loadLocations(_scriptDir);
+            
+            Location startLocation = world.findLocation("Start");
+            if(startLocation != null) world.setCurrentLocation(startLocation);
+            else throw new Exception("Could not find initial location!");
+            
+            for(IGameModeListener listener : _listeners)
+            {
+                listener.onClearOutput();
+            }
+            
+            MainGameMode mode = (MainGameMode)_manager.getMode("Main");
+            mode.loadFromWorldState(world);
+            
+            _manager.setActiveMode("Main");
+        }
+        catch (Exception ex)
+        {
+            printToAllListeners("Failed to start new game! \nException caught: " + ex.toString());
         }
     }
 }

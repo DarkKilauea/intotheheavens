@@ -14,7 +14,8 @@ import java.util.List;
 public class Location 
 {
     private String _name = null;
-    private List<CommandHandler> commandHandlers = new ArrayList<CommandHandler>();
+    private List<CommandHandler> _commandHandlers = new ArrayList<CommandHandler>();
+    private List<EventHandler> _eventHandlers = new ArrayList<EventHandler>();
 
     /**
      * Get the value of name
@@ -43,7 +44,17 @@ public class Location
      */
     public List<CommandHandler> getCommandHandlers() 
     {
-        return commandHandlers;
+        return _commandHandlers;
+    }
+    
+    /**
+     * Get the value of eventHandlers
+     *
+     * @return the value of eventHandlers
+     */
+    public List<EventHandler> getEventHandlers() 
+    {
+        return _eventHandlers;
     }
 
     public Location(String name)

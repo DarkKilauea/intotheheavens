@@ -26,6 +26,7 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
 {
     private GameModeManager _manager = new GameModeManager();
     private MenuGameMode _menuMode = null;
+    private MainGameMode _mainMode = null;
     
     public IntoTheHeavensDesktopView(SingleFrameApplication app) 
     {
@@ -114,7 +115,13 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
         
         _menuMode = new MenuGameMode(contentDir);
         _menuMode.registerListener(this);
+        
+        _mainMode = new MainGameMode();
+        _mainMode.registerListener(this);
+        
         _manager.registerGameMode("Menu", _menuMode);
+        _manager.registerGameMode("Main", _mainMode);
+        
         _manager.setActiveMode("Menu");
     }
 
@@ -304,5 +311,10 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
     public void onTextOutput(String output) 
     {
         consoleTextArea.setText(consoleTextArea.getText() + output + "\n");
+    }
+
+    public void onClearOutput() 
+    {
+        consoleTextArea.setText("");
     }
 }

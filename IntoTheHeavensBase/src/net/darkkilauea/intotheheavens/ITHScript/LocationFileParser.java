@@ -74,17 +74,39 @@ public class LocationFileParser
                 }
                 else throw new CompileException("String constant expected after command keyword.", _currentFile, lex.getLineNumber(), lex.getColumnNumber());
             }
+            else if(_token == Lexer.TK_EVENT)
+            {
+                //Expect name
+                if(nextToken(lex) && _token == Lexer.TK_STRING_LITERAL)
+                {
+                    String name = lex.getStringValue();
+                    if(nextToken(lex) && _token == _blockStart)
+                    {
+                        EventHandler handler = new EventHandler(name);
+                        
+                        Location parent = getTopLocation();
+                        parent.getEventHandlers().add(handler);
+                        _stack.push((Object)handler);
+                    }
+                    else throw new CompileException("Block start \"{\" expected.", _currentFile, lex.getLineNumber(), lex.getColumnNumber());
+                }
+                else throw new CompileException("String constant expected after event keyword.", _currentFile, lex.getLineNumber(), lex.getColumnNumber());
+            }
             //End of a block
             else if(_token == _blockEnd)
             {
                 _stack.pop();
             }
-            else if(getTopCommandHandler() != null)
+            else if(getTopStatementBlock() != null)
             {
-                CommandHandler handler = getTopCommandHandler();
+                StatementBlock handler = getTopStatementBlock();
                 
                 Statement stat = processStatement(lex);
                 if(stat != null) handler.getStatements().add(stat);
+            }
+            else
+            {
+                throw new CompileException("Cannot have a statement outside of a command or event block.", _currentFile, lex.getLineNumber(), lex.getColumnNumber());
             }
         }
         
@@ -153,14 +175,14 @@ public class LocationFileParser
         return item;
     }
     
-    private CommandHandler getTopCommandHandler()
+    private StatementBlock getTopStatementBlock()
     {
-        CommandHandler item = null;
+        StatementBlock item = null;
         for(Object obj : _stack)
         {
-            if(obj.getClass() == CommandHandler.class)
+            if(StatementBlock.class.isAssignableFrom(obj.getClass()))
             {
-                item = (CommandHandler)obj;
+                item = (StatementBlock)obj;
                 break;
             }
         }

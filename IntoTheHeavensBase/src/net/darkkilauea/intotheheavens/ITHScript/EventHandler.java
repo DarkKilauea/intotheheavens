@@ -8,10 +8,10 @@ package net.darkkilauea.intotheheavens.ITHScript;
  *
  * @author joshua
  */
-public class CommandHandler extends StatementBlock
+public class EventHandler extends StatementBlock
 {
     private String _name = null;
-
+    
     /**
      * Get the value of name
      *
@@ -32,8 +32,8 @@ public class CommandHandler extends StatementBlock
         _name = name;
     }
     
-    public CommandHandler(String name) 
+    public EventHandler(String name) 
     {
         _name = name;
-    } 
+    }
 }
