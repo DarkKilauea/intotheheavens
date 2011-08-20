@@ -4,8 +4,12 @@
  */
 package net.darkkilauea.intotheheavens;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import net.darkkilauea.intotheheavens.ITHScript.CompileException;
@@ -18,6 +22,8 @@ import net.darkkilauea.intotheheavens.ITHScript.LocationFileParser;
  */
 public class WorldState 
 {
+    private static int CUR_LOCATION_TOKEN = 0x00000001;
+    
     private List<Location> _locations = new ArrayList<Location>();
     protected Location _currentLocation = null;
 
@@ -76,5 +82,30 @@ public class WorldState
                 _locations.addAll(locations);
             }
         }
+    }
+    
+    public void saveState(OutputStream stream) throws IOException
+    {
+        DataOutputStream out = new DataOutputStream(stream);
+        
+        out.writeInt(CUR_LOCATION_TOKEN);
+        out.writeUTF(_currentLocation != null ? _currentLocation.getName() : "(null)");
+        
+        out.flush();
+    }
+    
+    public boolean loadState(InputStream stream) throws IOException
+    {
+        DataInputStream in = new DataInputStream(stream);
+        
+        if(in.readInt() == CUR_LOCATION_TOKEN)
+        {
+            String locationName = in.readUTF();
+            if(locationName.equals("(null)")) _currentLocation = null;
+            else _currentLocation = findLocation(locationName);
+        }
+        else return false;
+        
+        return true;
     }
 }

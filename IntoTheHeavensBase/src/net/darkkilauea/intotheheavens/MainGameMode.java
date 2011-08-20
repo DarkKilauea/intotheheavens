@@ -167,6 +167,11 @@ public class MainGameMode extends GameMode implements IVirtualMachineListener
             if(onEnter != null) _vm.executeStatementBlock(onEnter);
         }
     }
+    
+    public WorldState getWorldState()
+    {
+        return _world;
+    }
 
     @Override
     public void onInvokePrint(String message) 

@@ -19,7 +19,7 @@
               <Group type="102" alignment="1" attributes="0">
                   <Component id="jScrollPane1" pref="228" max="32767" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
-                  <Component id="commandTextField" min="-2" max="-2" attributes="0"/>
+                  <Component id="commandTextField" min="-2" pref="20" max="-2" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
@@ -52,12 +52,11 @@
         <Component class="javax.swing.JTextField" name="commandTextField">
           <Properties>
             <Property name="text" type="java.lang.String" resourceKey="commandTextField.text"/>
-            <Property name="toolTipText" type="java.lang.String" resourceKey="commandTextField.toolTipText"/>
+            <Property name="action" type="javax.swing.Action" editor="org.netbeans.modules.swingapp.ActionEditor">
+              <action class="intotheheavensdesktop.IntoTheHeavensDesktopView" id="submitCommand" methodName="submitCommand"/>
+            </Property>
             <Property name="name" type="java.lang.String" value="commandTextField" noResource="true"/>
           </Properties>
-          <Events>
-            <EventHandler event="keyPressed" listener="java.awt.event.KeyListener" parameters="java.awt.event.KeyEvent" handler="commandTextFieldKeyPressed"/>
-          </Events>
         </Component>
       </SubComponents>
     </Container>
@@ -80,6 +79,32 @@
             <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="0"/>
           </AuxValues>
           <SubComponents>
+            <MenuItem class="javax.swing.JMenuItem" name="newGameMenuItem">
+              <Properties>
+                <Property name="action" type="javax.swing.Action" editor="org.netbeans.modules.swingapp.ActionEditor">
+                  <action class="intotheheavensdesktop.IntoTheHeavensDesktopView" id="newGameAction" methodName="newGameAction"/>
+                </Property>
+                <Property name="name" type="java.lang.String" value="newGameMenuItem" noResource="true"/>
+              </Properties>
+            </MenuItem>
+            <MenuItem class="javax.swing.JMenuItem" name="loadGameMenuItem">
+              <Properties>
+                <Property name="action" type="javax.swing.Action" editor="org.netbeans.modules.swingapp.ActionEditor">
+                  <action class="intotheheavensdesktop.IntoTheHeavensDesktopView" id="loadGameAction" methodName="loadGameAction"/>
+                </Property>
+                <Property name="name" type="java.lang.String" value="loadGameMenuItem" noResource="true"/>
+              </Properties>
+            </MenuItem>
+            <MenuItem class="javax.swing.JMenuItem" name="saveGameMenuItem">
+              <Properties>
+                <Property name="action" type="javax.swing.Action" editor="org.netbeans.modules.swingapp.ActionEditor">
+                  <action class="intotheheavensdesktop.IntoTheHeavensDesktopView" id="saveGameAction" methodName="saveGameAction"/>
+                </Property>
+                <Property name="name" type="java.lang.String" value="saveGameMenuItem" noResource="true"/>
+              </Properties>
+            </MenuItem>
+            <MenuItem class="javax.swing.JPopupMenu$Separator" name="jSeparator1">
+            </MenuItem>
             <MenuItem class="javax.swing.JMenuItem" name="exitMenuItem">
               <Properties>
                 <Property name="action" type="javax.swing.Action" editor="org.netbeans.modules.swingapp.ActionEditor">
@@ -87,10 +112,6 @@
                 </Property>
                 <Property name="name" type="java.lang.String" value="exitMenuItem" noResource="true"/>
               </Properties>
-              <AuxValues>
-                <AuxValue name="JavaCodeGenerator_VariableLocal" type="java.lang.Boolean" value="true"/>
-                <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="0"/>
-              </AuxValues>
             </MenuItem>
           </SubComponents>
         </Menu>
