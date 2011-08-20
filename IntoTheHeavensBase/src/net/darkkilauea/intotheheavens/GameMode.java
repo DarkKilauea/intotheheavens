@@ -108,4 +108,12 @@ public class GameMode
             listener.onTextOutput(message);
         }
     }
+    
+    protected void clearAllListeners()
+    {
+        for(IGameModeListener listener : _listeners)
+        {
+            listener.onClearOutput();
+        }
+    }
 }

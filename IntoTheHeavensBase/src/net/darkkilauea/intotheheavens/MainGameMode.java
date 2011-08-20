@@ -166,6 +166,7 @@ public class MainGameMode extends GameMode implements IVirtualMachineListener
             EventHandler onEnter = curLocation.getEventHandler("OnEnter");
             if(onEnter != null) _vm.executeStatementBlock(onEnter);
         }
+        else printToAllListeners("Runtime Error: Starting location could not be found!");
     }
     
     public WorldState getWorldState()
@@ -192,6 +193,8 @@ public class MainGameMode extends GameMode implements IVirtualMachineListener
         Location newLocation = _world.findLocation(locationName);
         if(newLocation != null)
         {
+            clearAllListeners();
+            
             EventHandler onEnter = newLocation.getEventHandler("OnEnter");
             if(onEnter != null) _vm.executeStatementBlock(onEnter);
             

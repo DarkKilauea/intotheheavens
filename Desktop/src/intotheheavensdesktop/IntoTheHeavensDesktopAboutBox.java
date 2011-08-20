@@ -8,13 +8,15 @@ import org.jdesktop.application.Action;
 
 public class IntoTheHeavensDesktopAboutBox extends javax.swing.JDialog {
 
-    public IntoTheHeavensDesktopAboutBox(java.awt.Frame parent) {
+    public IntoTheHeavensDesktopAboutBox(java.awt.Frame parent) 
+    {
         super(parent);
         initComponents();
         getRootPane().setDefaultButton(closeButton);
     }
 
-    @Action public void closeAboutBox() {
+    @Action public void closeAboutBox() 
+    {
         dispose();
     }
 

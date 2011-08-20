@@ -4,9 +4,6 @@
 
 package intotheheavensdesktop;
 
-import java.io.FileNotFoundException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import net.darkkilauea.intotheheavens.GameMode.State;
 import org.jdesktop.application.Action;
 import org.jdesktop.application.ResourceMap;
@@ -18,7 +15,6 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import javax.swing.Timer;
 import javax.swing.Icon;
 import javax.swing.JDialog;
@@ -70,8 +66,7 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
         
         _manager.registerGameMode("Main", _mainMode);
         
-        consoleTextArea.setText(this.getResourceMap().getString("welcomeMessage"));
-        
+        consoleTextArea.setText(this.getResourceMap().getString("welcomeMessage") + "\n");
         saveGameMenuItem.setEnabled(false);
     }
     
@@ -369,7 +364,6 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
         if(dialog.showOpenDialog(mainFrame) == JFileChooser.APPROVE_OPTION)
         {
             File loadFile = dialog.getSelectedFile();
-            
             if(!loadFile.getName().endsWith(".sav"))
             {
                 loadFile = new File(loadFile.getPath() + ".sav");
@@ -411,7 +405,6 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
         if(dialog.showSaveDialog(mainFrame) == JFileChooser.APPROVE_OPTION)
         {
             File saveFile = dialog.getSelectedFile();
-            
             if(!saveFile.getName().endsWith(".sav"))
             {
                 saveFile = new File(saveFile.getPath() + ".sav");
