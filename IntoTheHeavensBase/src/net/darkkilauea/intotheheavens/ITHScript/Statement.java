@@ -10,5 +10,15 @@ package net.darkkilauea.intotheheavens.ITHScript;
  */
 public class Statement 
 {
+    protected StatementBlock _scope = null;
+
+    public StatementBlock getScope() 
+    {
+        return _scope;
+    }
     
+    public Statement(StatementBlock scope)
+    {
+        _scope = scope;
+    }
 }

@@ -14,7 +14,8 @@ import java.util.List;
 public class VirtualMachine 
 {
     protected List<IVirtualMachineListener> _listeners = new ArrayList<IVirtualMachineListener>();
-
+    protected List<Variable> _globals = new ArrayList<Variable>();
+    
     public boolean registerListener(IVirtualMachineListener listener)
     {
         return _listeners.add(listener);
@@ -25,8 +26,19 @@ public class VirtualMachine
         return _listeners.remove(listener);
     }
     
-    public void executeStatementBlock(StatementBlock block)
+    public List<Variable> getGlobals()
     {
+        return _globals;
+    }
+    
+    public void setGlobals(List<Variable> globals)
+    {
+        _globals = globals;
+    }
+    
+    public void executeStatementBlock(StatementBlock block, List<Variable> args) throws ScriptException
+    {   
+        //Execute statements
         for(Statement stat : block.getStatements())
         {
             if (stat.getClass().equals(PrintStatement.class))
@@ -35,7 +47,7 @@ public class VirtualMachine
                 
                 for(IVirtualMachineListener listener : _listeners)
                 {
-                    listener.onInvokePrint(printStat.getMessage());
+                    listener.onInvokePrint(printStat);
                 }
             }
             else if (stat.getClass().equals(GotoStatement.class))
@@ -44,7 +56,7 @@ public class VirtualMachine
                 
                 for(IVirtualMachineListener listener : _listeners)
                 {
-                    listener.onInvokeGoto(gotoStat.getLocationName());
+                    listener.onInvokeGoto(gotoStat);
                 }
             }
         }

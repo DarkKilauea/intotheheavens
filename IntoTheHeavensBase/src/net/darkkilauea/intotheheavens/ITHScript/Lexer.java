@@ -106,6 +106,11 @@ public class Lexer
         return _curColumn;
     }
     
+    public int getPreviousToken()
+    {
+        return _prevToken;
+    }
+    
     private void next()
     {
         try 

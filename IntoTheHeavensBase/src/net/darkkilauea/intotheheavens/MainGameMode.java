@@ -4,6 +4,8 @@
  */
 package net.darkkilauea.intotheheavens;
 
+import java.util.ArrayList;
+import java.util.List;
 import net.darkkilauea.intotheheavens.ITHScript.*;
 
 /**
@@ -126,19 +128,19 @@ public class MainGameMode extends GameMode implements IVirtualMachineListener
         }
         else if (command.getName().equalsIgnoreCase("North"))
         {
-            executeCommandHandler("North");
+            executeCommandHandler("North", new ArrayList<Variable>());
         }
         else if (command.getName().equalsIgnoreCase("East"))
         {
-            executeCommandHandler("East");
+            executeCommandHandler("East", new ArrayList<Variable>());
         }
         else if (command.getName().equalsIgnoreCase("South"))
         {
-            executeCommandHandler("South");
+            executeCommandHandler("South", new ArrayList<Variable>());
         }
         else if (command.getName().equalsIgnoreCase("West"))
         {
-            executeCommandHandler("West");
+            executeCommandHandler("West", new ArrayList<Variable>());
         }
         else
         {
@@ -146,13 +148,24 @@ public class MainGameMode extends GameMode implements IVirtualMachineListener
         }
     }
     
-    private void executeCommandHandler(String name)
+    private void executeCommandHandler(String name, List<Variable> arguments)
     {
-        Location curLocation = _world.getCurrentLocation();
-        if(curLocation != null)
+        try
         {
-            CommandHandler handler = curLocation.getCommandHandler(name);
-            if(handler != null) _vm.executeStatementBlock(handler);
+            Location curLocation = _world.getCurrentLocation();
+            if(curLocation != null)
+            {
+                StatementBlock handler = curLocation.getCommandHandler(name);
+                if(handler != null) _vm.executeStatementBlock(handler, arguments);
+            }
+        }
+        catch(ScriptException ex)
+        {
+            printToAllListeners(ex.getMessage());
+        }
+        catch(Exception ex)
+        {
+            printToAllListeners(ex.toString());
         }
     }
     
@@ -160,13 +173,27 @@ public class MainGameMode extends GameMode implements IVirtualMachineListener
     {
         _world = world;
         
-        Location curLocation = _world.getCurrentLocation();
-        if(curLocation != null)
+        try
         {
-            EventHandler onEnter = curLocation.getEventHandler("OnEnter");
-            if(onEnter != null) _vm.executeStatementBlock(onEnter);
+            Location curLocation = _world.getCurrentLocation();
+            if(curLocation != null)
+            {
+                ArrayList<Variable> args = new ArrayList<Variable>(1);
+                args.add(new Variable("prevLocation", ""));
+
+                StatementBlock onEnter = curLocation.getEventHandler("OnEnter");
+                if(onEnter != null) _vm.executeStatementBlock(onEnter, args);
+            }
+            else throw new Exception("Starting location could not be found!");
         }
-        else printToAllListeners("Runtime Error: Starting location could not be found!");
+        catch(ScriptException ex)
+        {
+            printToAllListeners(ex.getMessage());
+        }
+        catch(Exception ex)
+        {
+            printToAllListeners(ex.toString());
+        }
     }
     
     public WorldState getWorldState()
@@ -175,31 +202,67 @@ public class MainGameMode extends GameMode implements IVirtualMachineListener
     }
 
     @Override
-    public void onInvokePrint(String message) 
+    public void onInvokePrint(PrintStatement statement) 
     {
-        printToAllListeners(message);
+        try
+        {
+            printToAllListeners(statement.getMessage());
+        }
+        /*catch(ScriptException ex)
+        {
+            printToAllListeners(ex.getMessage());
+        }*/
+        catch(Exception ex)
+        {
+            printToAllListeners(ex.toString());
+        }
     }
 
     @Override
-    public void onInvokeGoto(String locationName) 
+    public void onInvokeGoto(GotoStatement statement) 
     {
-        Location curLocation = _world.getCurrentLocation();
-        if(curLocation != null)
+        try
         {
-            EventHandler onLeave = curLocation.getEventHandler("OnLeave");
-            if(onLeave != null) _vm.executeStatementBlock(onLeave);
+            String oldLocationName = "";
+            Location curLocation = _world.getCurrentLocation();
+            if(curLocation != null)
+            {
+                oldLocationName = curLocation.getName();
+                StatementBlock onLeave = curLocation.getEventHandler("OnLeave");
+                if(onLeave != null) 
+                {
+                    ArrayList<Variable> args = new ArrayList<Variable>(1);
+                    args.add(new Variable("nextLocation", statement.getLocationName()));
+
+                    _vm.executeStatementBlock(onLeave, args);
+                }
+            }
+
+            Location newLocation = _world.findLocation(statement.getLocationName());
+            if(newLocation != null)
+            {
+                clearAllListeners();
+
+                StatementBlock onEnter = newLocation.getEventHandler("OnEnter");
+                if(onEnter != null)
+                {
+                    ArrayList<Variable> args = new ArrayList<Variable>(1);
+                    args.add(new Variable("prevLocation", oldLocationName));
+
+                    _vm.executeStatementBlock(onEnter, args);
+                }
+
+                _world.setCurrentLocation(newLocation);
+            }
+            else throw new ScriptException("Location \"" + statement.getLocationName() + "\" could not be found.", statement);
         }
-        
-        Location newLocation = _world.findLocation(locationName);
-        if(newLocation != null)
+        catch(ScriptException ex)
         {
-            clearAllListeners();
-            
-            EventHandler onEnter = newLocation.getEventHandler("OnEnter");
-            if(onEnter != null) _vm.executeStatementBlock(onEnter);
-            
-            _world.setCurrentLocation(newLocation);
+            printToAllListeners(ex.getMessage());
         }
-        else printToAllListeners("Runtime Error: Location \"" + locationName + "\" could not be found!");
+        catch(Exception ex)
+        {
+            printToAllListeners(ex.toString());
+        }
     }
 }

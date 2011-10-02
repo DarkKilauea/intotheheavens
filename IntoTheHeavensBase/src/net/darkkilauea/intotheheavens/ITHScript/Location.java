@@ -14,8 +14,8 @@ import java.util.List;
 public class Location 
 {
     private String _name = null;
-    private List<CommandHandler> _commandHandlers = new ArrayList<CommandHandler>();
-    private List<EventHandler> _eventHandlers = new ArrayList<EventHandler>();
+    private List<StatementBlock> _commandHandlers = new ArrayList<StatementBlock>();
+    private List<StatementBlock> _eventHandlers = new ArrayList<StatementBlock>();
 
     /**
      * Get the value of name
@@ -42,7 +42,7 @@ public class Location
      *
      * @return the value of commandHandlers
      */
-    public List<CommandHandler> getCommandHandlers() 
+    public List<StatementBlock> getCommandHandlers() 
     {
         return _commandHandlers;
     }
@@ -52,15 +52,15 @@ public class Location
      *
      * @return the value of eventHandlers
      */
-    public List<EventHandler> getEventHandlers() 
+    public List<StatementBlock> getEventHandlers() 
     {
         return _eventHandlers;
     }
     
-    public CommandHandler getCommandHandler(String commandName)
+    public StatementBlock getCommandHandler(String commandName)
     {
-        CommandHandler item = null;
-        for(CommandHandler handler : _commandHandlers)
+        StatementBlock item = null;
+        for(StatementBlock handler : _commandHandlers)
         {
             if(handler.getName().equals(commandName))
             {
@@ -72,10 +72,10 @@ public class Location
         return item;
     }
     
-    public EventHandler getEventHandler(String eventName)
+    public StatementBlock getEventHandler(String eventName)
     {
-        EventHandler item = null;
-        for(EventHandler handler : _eventHandlers)
+        StatementBlock item = null;
+        for(StatementBlock handler : _eventHandlers)
         {
             if(handler.getName().equals(eventName))
             {
@@ -90,5 +90,11 @@ public class Location
     public Location(String name)
     {
         _name = name;
+    }
+
+    @Override
+    public String toString() 
+    {
+        return "location(" + _name + ")";
     }
 }

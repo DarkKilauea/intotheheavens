@@ -32,14 +32,15 @@ public class GotoStatement extends Statement
         _locationName = locationName;
     }
     
-    public GotoStatement(String location)
+    public GotoStatement(StatementBlock scope, String location)
     {
+        super(scope);
         _locationName = location;
     }
 
     @Override
     public String toString() 
     {
-        return "GotoStatement{" + "_locationName=" + _locationName + '}';
+        return "goto(" + "locationName=\"" + _locationName + "\")";
     }
 }

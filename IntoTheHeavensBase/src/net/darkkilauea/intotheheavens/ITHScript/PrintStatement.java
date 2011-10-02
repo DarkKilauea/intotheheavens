@@ -32,14 +32,15 @@ public class PrintStatement extends Statement
         _message = message;
     }
 
-    public PrintStatement(String message)
+    public PrintStatement(StatementBlock scope, String message)
     {
+        super(scope);
         _message = message;
     }
 
     @Override
     public String toString() 
     {
-        return "PrintStatement{" + "_message=" + _message + '}';
+        return "print(" + "message=\"" + _message + "\")";
     }
 }
