@@ -14,48 +14,117 @@ import java.util.HashMap;
  */
 public class Lexer 
 {
-    public static int TK_UNKNOWN = 0;
-    public static int TK_LOCATION = 258;
-    public static int TK_COMMAND = 259;
-    public static int TK_STRING_LITERAL = 260;
-    public static int TK_INTEGER = 261;
-    public static int TK_FLOAT = 262;
-    public static int TK_EQ = 263;
-    public static int TK_NE = 264;
-    public static int TK_LE = 265;
-    public static int TK_GE = 266;
-    public static int TK_AND = 267;
-    public static int TK_OR = 268;
-    public static int TK_IF = 269;
-    public static int TK_ELSE = 270;
-    public static int TK_NULL = 271;
-    public static int TK_MODULO = 272;
-    public static int TK_UMINUS = 273;
-    public static int TK_PLUSEQ = 274;
-    public static int TK_MINUSEQ = 275;
-    public static int TK_PLUSPLUS = 276;
-    public static int TK_MINUSMINUS = 277;
-    public static int TK_TRUE = 278;
-    public static int TK_FALSE = 279;
-    public static int TK_MULEQ = 280;
-    public static int TK_DIVEQ = 281;
-    public static int TK_MODEQ = 282;
-    public static int TK_IDENTIFIER = 283;
-    public static int TK_PRINT = 284;
-    public static int TK_GOTO = 285;
-    public static int TK_EVENT = 286;
+    public class Token
+    {
+        private int _value = 0;
+        private String _stringValue = "";
+        private int _intValue = 0;
+        private float _floatValue = 0.0f;
+        private int _line = 1;
+        private int _column = 0;
+               
+        public Token(int token, int line, int column)
+        {
+            _value = token;
+            _line = line;
+            _column = column;
+        }
+        
+        public Token(int token, int line, int column, String stringValue)
+        {
+            _value = token;
+            _line = line;
+            _column = column;
+            
+            _stringValue = stringValue;
+        }
+        
+        public Token(int token, int line, int column, int intValue)
+        {
+            _value = token;
+            _line = line;
+            _column = column;
+            
+            _intValue = intValue;
+        }
+        
+        public Token(int token, int line, int column, float floatValue)
+        {
+            _value = token;
+            _line = line;
+            _column = column;
+            
+            _floatValue = floatValue;
+        }
+        
+        public int getValue()
+        {
+            return _value;
+        }
+        
+        public String getStringValue()
+        {
+            return _stringValue;
+        }
+
+        public int getIntegerValue()
+        {
+            return _intValue;
+        }
+
+        public float getFloatValue()
+        {
+            return _floatValue;
+        }
+
+        public int getLineNumber()
+        {
+            return _line;
+        }
+
+        public int getColumnNumber()
+        {
+            return _column;
+        }
+    }
+    
+    public static final int TK_UNKNOWN = 0;
+    public static final int TK_LOCATION = 258;
+    public static final int TK_COMMAND = 259;
+    public static final int TK_STRING_LITERAL = 260;
+    public static final int TK_INTEGER = 261;
+    public static final int TK_FLOAT = 262;
+    public static final int TK_EQ = 263;
+    public static final int TK_NE = 264;
+    public static final int TK_LE = 265;
+    public static final int TK_GE = 266;
+    public static final int TK_AND = 267;
+    public static final int TK_OR = 268;
+    public static final int TK_IF = 269;
+    public static final int TK_ELSE = 270;
+    public static final int TK_NULL = 271;
+    public static final int TK_UMINUS = 273;
+    public static final int TK_PLUSEQ = 274;
+    public static final int TK_MINUSEQ = 275;
+    public static final int TK_PLUSPLUS = 276;
+    public static final int TK_MINUSMINUS = 277;
+    public static final int TK_TRUE = 278;
+    public static final int TK_FALSE = 279;
+    public static final int TK_MULEQ = 280;
+    public static final int TK_DIVEQ = 281;
+    public static final int TK_MODEQ = 282;
+    public static final int TK_VARIABLE = 283;
+    public static final int TK_PRINT = 284;
+    public static final int TK_GOTO = 285;
+    public static final int TK_EVENT = 286;
     
     private Reader _reader = null;
     private char _curCharacter = '\0';
-    private int _curToken = TK_UNKNOWN;
-    private int _prevToken = _curToken;
+    private Token _curToken = null;
+    private Token _prevToken = null;
     private int _curLine = 1;
     private int _curColumn = 0;
-    
-    private String _stringValue = "";
-    private int _intValue = 0;
-    private float _floatValue = 0.0f;
-    
+
     private HashMap<String, Integer> _keywords = new HashMap<String, Integer>();
     
     public Lexer(Reader reader)
@@ -81,32 +150,7 @@ public class Lexer
         next();
     }
     
-    public String getStringValue()
-    {
-        return _stringValue;
-    }
-    
-    public int getIntegerValue()
-    {
-        return _intValue;
-    }
-    
-    public float getFloatValue()
-    {
-        return _floatValue;
-    }
-    
-    public int getLineNumber()
-    {
-        return _curLine;
-    }
-    
-    public int getColumnNumber()
-    {
-        return _curColumn;
-    }
-    
-    public int getPreviousToken()
+    public Token getPreviousToken()
     {
         return _prevToken;
     }
@@ -124,7 +168,7 @@ public class Lexer
         }
     }
     
-    public int nextToken() throws IOException
+    public Token nextToken() throws IOException
     {
 	while(_curCharacter != '\0') 
         {
@@ -138,7 +182,7 @@ public class Lexer
 		case '\n':
                     _curLine++;
                     _prevToken = _curToken;
-                    _curToken = '\n';
+                    _curToken = new Token('\n', _curLine, _curColumn);
                     next();
                     _curColumn = 1;
                     continue;
@@ -202,12 +246,7 @@ public class Lexer
                     }
 		case '"':
                     {
-			int stringResult = readString();
-			if(stringResult != -1)
-                        {
-                            return setToken(stringResult);
-			}
-			//Error
+                        return setToken(readString());
                     }
 		case '{': 
                 case '}': 
@@ -288,7 +327,7 @@ public class Lexer
                     }
                     else return setToken('+');
 		case '\0':
-			return 0;
+			return new Token(TK_UNKNOWN, _curLine, _curColumn);
 		default:
                 {
                     if (Character.isDigit(_curCharacter)) 
@@ -303,14 +342,21 @@ public class Lexer
 		}
             }
 	}
-	return TK_UNKNOWN;
+	return new Token(TK_UNKNOWN, _curLine, _curColumn);
     }
     
-    private int setToken(int t)
+    private Token setToken(int t)
+    {
+        _prevToken = _curToken; 
+        _curToken = new Token(t, _curLine, _curColumn); 
+        return _curToken;
+    }
+    
+    private Token setToken(Token t)
     {
         _prevToken = _curToken; 
         _curToken = t; 
-        return t;
+        return _curToken;
     }
     
     private void consumeCommentBlock()
@@ -343,11 +389,11 @@ public class Lexer
         }
     }
     
-    private int readString()
+    private Token readString()
     {
 	String temp = "";
 	next();
-	if(_curCharacter == '\0') return -1;
+	if(_curCharacter == '\0') return new Token(TK_UNKNOWN, _curLine, _curColumn);
 	for(;;) 
         {
             while(_curCharacter != '\"') 
@@ -355,7 +401,7 @@ public class Lexer
                 switch(_curCharacter) 
                 {
                     case '\0':
-                        return -1;
+                        return new Token(TK_UNKNOWN, _curLine, _curColumn);
                     case '\n': 
                         temp = temp + _curCharacter; 
                         next(); 
@@ -376,11 +422,10 @@ public class Lexer
             else break;
 	}
         
-	_stringValue = temp;
-	return TK_STRING_LITERAL;
+	return new Token(TK_STRING_LITERAL, _curLine, _curColumn, temp);
     }
     
-    private int readNumber()
+    private Token readNumber()
     {
         int type = 0; 
         String temp = "";
@@ -394,23 +439,21 @@ public class Lexer
         switch(type) 
         {
             case 1:
-                _floatValue = Float.parseFloat(temp);
-                return TK_FLOAT;
+                return new Token(TK_FLOAT, _curLine, _curColumn, Float.parseFloat(temp));
             case 0:
-                _intValue = Integer.parseInt(temp);
-                return TK_INTEGER;
+                return new Token(TK_INTEGER, _curLine, _curColumn, Integer.parseInt(temp));
 	}
         
-	return 0;
+	return new Token(TK_UNKNOWN, _curLine, _curColumn);
     }
     
     private int getIdType(String id)
     {
         if(_keywords.containsKey(id)) return _keywords.get(id);
-        else return TK_IDENTIFIER;
+        else return TK_VARIABLE;
     }
     
-    private int readId()
+    private Token readId()
     {
         String temp = "";
         
@@ -418,12 +461,12 @@ public class Lexer
         {
             temp = temp + _curCharacter;
             next();
-	} while(Character.isLetterOrDigit(_curCharacter) || _curCharacter == '_');
+	} 
+        while(Character.isLetterOrDigit(_curCharacter) || _curCharacter == '_' || _curCharacter == '$');
         
         int res = getIdType(temp);
-        if(res == TK_IDENTIFIER) _stringValue = temp;
-        
-        return res;
+        if(res == TK_VARIABLE) return new Token(res, _curLine, _curColumn, temp);
+        else return new Token(res, _curLine, _curColumn);
     }
     
     public void close() throws IOException

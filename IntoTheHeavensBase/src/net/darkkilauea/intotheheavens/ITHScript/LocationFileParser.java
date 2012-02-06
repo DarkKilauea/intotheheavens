@@ -11,6 +11,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
+import net.darkkilauea.intotheheavens.ITHScript.Lexer.Token;
 
 /**
  *
@@ -18,7 +19,7 @@ import java.util.List;
  */
 public class LocationFileParser 
 {
-    private int _token = 0;
+    private Token _token = null;
     private Deque<Object> _stack = new ArrayDeque<Object>();
     private String _currentFile = null;
     
@@ -45,7 +46,12 @@ public class LocationFileParser
     
     private boolean isEndOfStatement(Lexer lex)
     {
-        return ((lex.getPreviousToken() == '\n') || (_token == ';'));
+        return ((lex.getPreviousToken().getValue() == '\n') || (_token.getValue() == ';'));
+    }
+    
+    private void EmitCompileError(String message) throws CompileException
+    {
+        throw new CompileException(message, _currentFile, _token.getLineNumber(), _token.getColumnNumber());
     }
     
     public void parseFile() throws CompileException, IOException
@@ -55,16 +61,16 @@ public class LocationFileParser
         Lexer lex = new Lexer(reader);
         
         nextToken(lex);
-        while(_token > 0)
+        while(_token.getValue() > 0)
         {
             //Start of location block
-            if(_token == Lexer.TK_LOCATION)
+            if(_token.getValue() == Lexer.TK_LOCATION)
             {
                 //Expect name
-                if(nextToken(lex) && _token == Lexer.TK_STRING_LITERAL)
+                if(nextToken(lex) && _token.getValue() == Lexer.TK_STRING_LITERAL)
                 {
-                    String name = lex.getStringValue();
-                    if(nextToken(lex) && _token == _blockStart)
+                    String name = _token.getStringValue();
+                    if(nextToken(lex) && _token.getValue() == _blockStart)
                     {
                         Location loc = new Location(name);
                         _locations.add(loc);
@@ -72,17 +78,17 @@ public class LocationFileParser
                         
                         nextToken(lex);
                     }
-                    else throw new CompileException("Block start \"{\" expected.", _currentFile, lex.getLineNumber(), lex.getColumnNumber());
+                    else EmitCompileError("Block start \"{\" expected.");
                 }
-                else throw new CompileException("String constant expected after location keyword.", _currentFile, lex.getLineNumber(), lex.getColumnNumber());
+                else EmitCompileError("String constant expected after location keyword.");
             }
-            else if(_token == Lexer.TK_COMMAND)
+            else if(_token.getValue() == Lexer.TK_COMMAND)
             {
                 //Expect name
-                if(nextToken(lex) && _token == Lexer.TK_STRING_LITERAL)
+                if(nextToken(lex) && _token.getValue() == Lexer.TK_STRING_LITERAL)
                 {
-                    String name = lex.getStringValue();
-                    if(nextToken(lex) && _token == _blockStart)
+                    String name = _token.getStringValue();
+                    if(nextToken(lex) && _token.getValue() == _blockStart)
                     {
                         Location parent = getTopLocation();
                         StatementBlock handler = new StatementBlock(null, parent, name);
@@ -92,17 +98,17 @@ public class LocationFileParser
                         
                         nextToken(lex);
                     }
-                    else throw new CompileException("Block start \"{\" expected.", _currentFile, lex.getLineNumber(), lex.getColumnNumber());
+                    else EmitCompileError("Block start \"{\" expected.");
                 }
-                else throw new CompileException("String constant expected after command keyword.", _currentFile, lex.getLineNumber(), lex.getColumnNumber());
+                else EmitCompileError("String constant expected after command keyword.");
             }
-            else if(_token == Lexer.TK_EVENT)
+            else if(_token.getValue() == Lexer.TK_EVENT)
             {
                 //Expect name
-                if(nextToken(lex) && _token == Lexer.TK_STRING_LITERAL)
+                if(nextToken(lex) && _token.getValue() == Lexer.TK_STRING_LITERAL)
                 {
-                    String name = lex.getStringValue();
-                    if(nextToken(lex) && _token == _blockStart)
+                    String name = _token.getStringValue();
+                    if(nextToken(lex) && _token.getValue() == _blockStart)
                     {
                         Location parent = getTopLocation();
                         StatementBlock handler = new StatementBlock(null, parent, name);
@@ -112,14 +118,16 @@ public class LocationFileParser
                         
                         nextToken(lex);
                     }
-                    else throw new CompileException("Block start \"{\" expected.", _currentFile, lex.getLineNumber(), lex.getColumnNumber());
+                    else EmitCompileError("Block start \"{\" expected.");
                 }
-                else throw new CompileException("String constant expected after event keyword.", _currentFile, lex.getLineNumber(), lex.getColumnNumber());
+                else EmitCompileError("String constant expected after event keyword.");
             }
             //End of a block
-            else if(_token == _blockEnd)
+            else if(_token.getValue() == _blockEnd)
             {
-                _stack.pop();
+                if (_stack.size() > 0) _stack.pop();
+                else EmitCompileError("End of block with no matching start.");
+                
                 nextToken(lex);
             }
             else if(getTopStatementBlock() != null)
@@ -131,7 +139,7 @@ public class LocationFileParser
             }
             else
             {
-                throw new CompileException("Cannot have a statement outside of a command or event block.", _currentFile, lex.getLineNumber(), lex.getColumnNumber());
+                EmitCompileError("Cannot have a statement outside of a command or event block.");
             }
         }
         
@@ -140,15 +148,19 @@ public class LocationFileParser
     
     private List<Statement> processStatement(StatementBlock block, Lexer lex) throws IOException, CompileException
     {
-        if(_token == ';') 
+        if(_token.getValue() == ';') 
         {
             nextToken(lex);
             return null;
         }
-        else if(_token == Lexer.TK_PRINT) return processPrintStatement(block, lex);
-        else if(_token == Lexer.TK_GOTO) return processGotoStatement(block, lex);
-        else if(_token == Lexer.TK_IDENTIFIER) return null;
-        else throw new CompileException("Unknown statement.", _currentFile, lex.getLineNumber(), lex.getColumnNumber());
+        else if(_token.getValue() == Lexer.TK_PRINT) return processPrintStatement(block, lex);
+        else if(_token.getValue() == Lexer.TK_GOTO) return processGotoStatement(block, lex);
+        else if(_token.getValue() == Lexer.TK_VARIABLE) return null;
+        else 
+        {
+            EmitCompileError("Unknown statement.");
+            return null;
+        }
     }
     
     private List<Statement> processPrintStatement(StatementBlock block, Lexer lex) throws IOException, CompileException
@@ -156,31 +168,35 @@ public class LocationFileParser
         nextToken(lex);
         
         List<Statement> stats = new ArrayList<Statement>();
-        if(_token == Lexer.TK_STRING_LITERAL)
+        if(_token.getValue() == Lexer.TK_STRING_LITERAL)
         {
-            stats.add(new PrintStatement(block, lex.getStringValue()));
+            stats.add(new PrintStatement(block, _token.getStringValue()));
             nextToken(lex);
-            if(!isEndOfStatement(lex)) throw new CompileException("Expected end of expression after statement.", _currentFile, lex.getLineNumber(), lex.getColumnNumber());
+            if(!isEndOfStatement(lex)) EmitCompileError("Expected end of expression after statement.");
             
             return stats;
         }
-        else if(_token == Lexer.TK_FLOAT)
+        else if(_token.getValue() == Lexer.TK_FLOAT)
         {
-            stats.add(new PrintStatement(block, ((Float)lex.getFloatValue()).toString()));
+            stats.add(new PrintStatement(block, ((Float)_token.getFloatValue()).toString()));
             nextToken(lex);
-            if(!isEndOfStatement(lex)) throw new CompileException("Expected end of expression after statement.", _currentFile, lex.getLineNumber(), lex.getColumnNumber());
+            if(!isEndOfStatement(lex)) EmitCompileError("Expected end of expression after statement.");
             
             return stats;
         }
-        else if(_token == Lexer.TK_INTEGER)
+        else if(_token.getValue() == Lexer.TK_INTEGER)
         {
-            stats.add(new PrintStatement(block, ((Integer)lex.getIntegerValue()).toString()));
+            stats.add(new PrintStatement(block, ((Integer)_token.getIntegerValue()).toString()));
             nextToken(lex);
-            if(!isEndOfStatement(lex)) throw new CompileException("Expected end of expression after statement.", _currentFile, lex.getLineNumber(), lex.getColumnNumber());
+            if(!isEndOfStatement(lex)) EmitCompileError("Expected end of expression after statement.");
             
             return stats;
         }
-        else throw new CompileException("Expected a string constant, integer, or float after print.", _currentFile, lex.getLineNumber(), lex.getColumnNumber());
+        else 
+        {
+            EmitCompileError("Expected a string constant, integer, or float after print.");
+            return null;
+        }
     }
     
     private List<Statement> processGotoStatement(StatementBlock block, Lexer lex) throws IOException, CompileException
@@ -188,22 +204,84 @@ public class LocationFileParser
         nextToken(lex);
         
         List<Statement> stats = new ArrayList<Statement>();
-        if(_token == Lexer.TK_STRING_LITERAL)
+        if(_token.getValue() == Lexer.TK_STRING_LITERAL)
         {
-            stats.add(new GotoStatement(block, lex.getStringValue()));
+            stats.add(new GotoStatement(block, _token.getStringValue()));
             nextToken(lex);
-            if(!isEndOfStatement(lex)) throw new CompileException("Expected end of expression after statement.", _currentFile, lex.getLineNumber(), lex.getColumnNumber());
+            if(!isEndOfStatement(lex)) EmitCompileError("Expected end of expression after statement.");
             
             return stats;
         }
-        else throw new CompileException("Expected string constant after goto.", _currentFile, lex.getLineNumber(), lex.getColumnNumber());
+        else 
+        {
+            EmitCompileError("Expected string constant after goto.");
+            return null;
+        }
+    }
+    
+    private List<Statement> processExpression(Lexer lex) throws IOException, CompileException
+    {
+        List<Token> tokens = new ArrayList<Token>();
+        
+        do
+        {
+            nextToken(lex);
+            
+            switch (_token.getValue())
+            {
+                case '+':
+                case '-':
+                case '*':
+                case '/':
+                case '=':
+                case '<':
+                case '>':
+                case '!':
+                case '(':
+                case ')':
+                case '%':
+                case Lexer.TK_DIVEQ:
+                case Lexer.TK_EQ:
+                case Lexer.TK_LE:
+                case Lexer.TK_GE:
+                case Lexer.TK_NE:
+                case Lexer.TK_AND:
+                case Lexer.TK_OR:
+                case Lexer.TK_MULEQ:
+                case Lexer.TK_MODEQ:
+                case Lexer.TK_MINUSEQ:
+                case Lexer.TK_PLUSEQ:
+                case Lexer.TK_MINUSMINUS:
+                case Lexer.TK_PLUSPLUS:
+                case Lexer.TK_FLOAT:
+                case Lexer.TK_STRING_LITERAL:
+                case Lexer.TK_INTEGER:
+                case Lexer.TK_VARIABLE:
+                case Lexer.TK_TRUE:
+                case Lexer.TK_FALSE:
+                case Lexer.TK_NULL:
+                    tokens.add(_token);
+                    break;
+                default:
+                    EmitCompileError("Invalid token in expression");
+                    break;
+            }
+        }
+        while (_token.getValue() != ';');
+        
+        return scanExpressionAndEmitStatements(tokens);
+    }
+    
+    private List<Statement> scanExpressionAndEmitStatements(List<Token> tokens) throws CompileException
+    {
+        return null;
     }
     
     private boolean nextToken(Lexer lex) throws IOException
     {
         _token = lex.nextToken();
         
-        if(_token > 0) return true;
+        if(_token.getValue() > 0) return true;
         else return false;
     }
     
