@@ -8,35 +8,33 @@ package net.darkkilauea.intotheheavens.ITHScript;
  *
  * @author joshua
  */
-public final class Variable 
+public final class Variable extends ScriptObject
 {
     private boolean _global = false;
-    private int _intValue = 0;
-    private float _floatValue = 0.0f;
-    private String _stringValue = "";
     private String _name = null;
     
     public Variable(String name)
     {
+        super();
         setName(name);
     }
     
     public Variable(String name, int value)
     {
-        this(name);
-        setValue(value);
+        super(value);
+        setName(name);
     }
     
     public Variable(String name, float value)
     {
-        this(name);
-        setValue(value);
+        super(value);
+        setName(name);
     }
     
     public Variable(String name, String value)
     {
-        this(name);
-        setValue(value);
+        super(value);
+        setName(name);
     }
 
     public boolean isGlobal() 
@@ -59,56 +57,46 @@ public final class Variable
         return _name;
     }
     
-    public void setValue(int value)
+    public int getType()
     {
-        _intValue = value;
-        _floatValue = (float)value;
-        _stringValue = Integer.toString(value);
+        return _type;
     }
     
-    public void setValue(float value)
+    public void setValue(int value)
     {
-        _intValue = (int)value;
+        _type = ScriptObject.SOT_INTEGER;
+        _intValue = value;
+        _floatValue = 0;
+        _stringValue = null;
+    }
+    
+    public void setValue(double value)
+    {
+        _type = ScriptObject.SOT_FLOAT;
         _floatValue = value;
-        _stringValue = Float.toString(value);
+        _intValue = 0;
+        _stringValue = null;
     }
     
     public void setValue(String value)
     {
-        try
-        {
-            _intValue = Integer.parseInt(value);
-        }
-        catch(Exception ex)
-        {
-            _intValue = 0;
-        }
-        
-        try
-        {
-            _floatValue = Float.parseFloat(value);
-        }
-        catch(Exception ex)
-        {
-            _floatValue = 0;
-        }
-        
+        _type = ScriptObject.SOT_STRING;
         _stringValue = value;
+        _intValue = 0;
+        _floatValue = 0;
     }
     
-    public int getIntegerValue()
+    public boolean IsNull()
     {
-        return _intValue;
+        return _type == ScriptObject.SOT_NULL;
     }
     
-    public float getFloatValue()
+    public void setNull()
     {
-        return _floatValue;
-    }
-    
-    public String getStringValue()
-    {
-        return _stringValue;
+        _type = ScriptObject.SOT_NULL;
+        _stringValue = null;
+        _intValue = 0;
+        _floatValue = 0;
     }
     
     public void copyTo(Variable other)

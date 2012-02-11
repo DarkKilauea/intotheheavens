@@ -15,6 +15,7 @@ import java.util.List;
 import net.darkkilauea.intotheheavens.ITHScript.CompileException;
 import net.darkkilauea.intotheheavens.ITHScript.Location;
 import net.darkkilauea.intotheheavens.ITHScript.LocationFileParser;
+import net.darkkilauea.intotheheavens.ITHScript.ScriptObject;
 import net.darkkilauea.intotheheavens.ITHScript.Variable;
 
 /**
@@ -117,7 +118,10 @@ public class WorldState
         {
             out.writeInt(GLOBAL_VAR_VALUE_TOKEN);
             out.writeUTF(var.getName());
-            out.writeUTF(var.getStringValue());
+            out.write(var.getType());
+            if (var.getType() == ScriptObject.SOT_STRING) out.writeUTF(var.toString());
+            else if (var.getType() == ScriptObject.SOT_INTEGER) out.writeInt(var.toInt());
+            else if (var.getType() == ScriptObject.SOT_FLOAT) out.writeDouble(var.toFloat());
         }
         
         out.flush();
@@ -137,7 +141,14 @@ public class WorldState
         {
             String globalName = in.readUTF();
             Variable global = findGlobal(globalName);
-            if (global != null) global.setValue(in.readUTF());
+            if (global != null)
+            {
+                int varType = in.readInt();
+                if (varType == ScriptObject.SOT_STRING) global.setValue(in.readUTF());
+                else if (varType == ScriptObject.SOT_INTEGER) global.setValue(in.readInt());
+                else if (varType == ScriptObject.SOT_FLOAT) global.setValue(in.readDouble());
+                else global.setNull();
+            }
             else return false;
         }
         else return false;

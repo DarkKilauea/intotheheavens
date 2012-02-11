@@ -19,7 +19,7 @@ public class Lexer
         private int _value = 0;
         private String _stringValue = "";
         private int _intValue = 0;
-        private float _floatValue = 0.0f;
+        private double _floatValue = 0.0f;
         private int _line = 1;
         private int _column = 0;
                
@@ -48,7 +48,7 @@ public class Lexer
             _intValue = intValue;
         }
         
-        public Token(int token, int line, int column, float floatValue)
+        public Token(int token, int line, int column, double floatValue)
         {
             _value = token;
             _line = line;
@@ -72,7 +72,7 @@ public class Lexer
             return _intValue;
         }
 
-        public float getFloatValue()
+        public double getFloatValue()
         {
             return _floatValue;
         }
@@ -439,7 +439,7 @@ public class Lexer
         switch(type) 
         {
             case 1:
-                return new Token(TK_FLOAT, _curLine, _curColumn, Float.parseFloat(temp));
+                return new Token(TK_FLOAT, _curLine, _curColumn, Double.parseDouble(temp));
             case 0:
                 return new Token(TK_INTEGER, _curLine, _curColumn, Integer.parseInt(temp));
 	}

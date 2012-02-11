@@ -20,8 +20,9 @@ import net.darkkilauea.intotheheavens.ITHScript.Lexer.Token;
 public class LocationFileParser 
 {
     private Token _token = null;
-    private Deque<Object> _stack = new ArrayDeque<Object>();
     private String _currentFile = null;
+    private Location _currentLocation = null;
+    private Closure _currentClosure = null;
     
     private char _blockStart = '{';
     private char _blockEnd = '}';
@@ -74,7 +75,7 @@ public class LocationFileParser
                     {
                         Location loc = new Location(name);
                         _locations.add(loc);
-                        _stack.push((Object)loc);
+                        _currentLocation = loc;
                         
                         nextToken(lex);
                     }
@@ -90,11 +91,11 @@ public class LocationFileParser
                     String name = _token.getStringValue();
                     if(nextToken(lex) && _token.getValue() == _blockStart)
                     {
-                        Location parent = getTopLocation();
-                        StatementBlock handler = new StatementBlock(null, parent, name);
+                        Location parent = _currentLocation;
+                        Closure handler = new Closure(parent, name);
                         
                         parent.getCommandHandlers().add(handler);
-                        _stack.push((Object)handler);
+                        _currentClosure = handler;
                         
                         nextToken(lex);
                     }
@@ -110,11 +111,11 @@ public class LocationFileParser
                     String name = _token.getStringValue();
                     if(nextToken(lex) && _token.getValue() == _blockStart)
                     {
-                        Location parent = getTopLocation();
-                        StatementBlock handler = new StatementBlock(null, parent, name);
+                        Location parent = _currentLocation;
+                        Closure handler = new Closure(parent, name);
                         
                         parent.getEventHandlers().add(handler);
-                        _stack.push((Object)handler);
+                        _currentClosure = handler;
                         
                         nextToken(lex);
                     }
@@ -125,17 +126,22 @@ public class LocationFileParser
             //End of a block
             else if(_token.getValue() == _blockEnd)
             {
-                if (_stack.size() > 0) _stack.pop();
+                if (_currentLocation != null && _currentClosure != null)
+                {
+                    _currentClosure = null;
+                }
+                else if (_currentLocation != null)
+                {
+                    _currentLocation = null;
+                }
                 else EmitCompileError("End of block with no matching start.");
                 
                 nextToken(lex);
             }
-            else if(getTopStatementBlock() != null)
+            else if(_currentClosure != null)
             {
-                StatementBlock handler = getTopStatementBlock();
-                
-                List<Statement> stats = processStatement(handler, lex);
-                if(stats != null) handler.getStatements().addAll(stats);
+                //Todo: Add compiler
+                EmitCompileError("Statement parsing currently disabled.");
             }
             else
             {
@@ -146,172 +152,11 @@ public class LocationFileParser
         lex.close();
     }
     
-    private List<Statement> processStatement(StatementBlock block, Lexer lex) throws IOException, CompileException
-    {
-        if(_token.getValue() == ';') 
-        {
-            nextToken(lex);
-            return null;
-        }
-        else if(_token.getValue() == Lexer.TK_PRINT) return processPrintStatement(block, lex);
-        else if(_token.getValue() == Lexer.TK_GOTO) return processGotoStatement(block, lex);
-        else if(_token.getValue() == Lexer.TK_VARIABLE) return null;
-        else 
-        {
-            EmitCompileError("Unknown statement.");
-            return null;
-        }
-    }
-    
-    private List<Statement> processPrintStatement(StatementBlock block, Lexer lex) throws IOException, CompileException
-    {
-        nextToken(lex);
-        
-        List<Statement> stats = new ArrayList<Statement>();
-        if(_token.getValue() == Lexer.TK_STRING_LITERAL)
-        {
-            stats.add(new PrintStatement(block, _token.getStringValue()));
-            nextToken(lex);
-            if(!isEndOfStatement(lex)) EmitCompileError("Expected end of expression after statement.");
-            
-            return stats;
-        }
-        else if(_token.getValue() == Lexer.TK_FLOAT)
-        {
-            stats.add(new PrintStatement(block, ((Float)_token.getFloatValue()).toString()));
-            nextToken(lex);
-            if(!isEndOfStatement(lex)) EmitCompileError("Expected end of expression after statement.");
-            
-            return stats;
-        }
-        else if(_token.getValue() == Lexer.TK_INTEGER)
-        {
-            stats.add(new PrintStatement(block, ((Integer)_token.getIntegerValue()).toString()));
-            nextToken(lex);
-            if(!isEndOfStatement(lex)) EmitCompileError("Expected end of expression after statement.");
-            
-            return stats;
-        }
-        else 
-        {
-            EmitCompileError("Expected a string constant, integer, or float after print.");
-            return null;
-        }
-    }
-    
-    private List<Statement> processGotoStatement(StatementBlock block, Lexer lex) throws IOException, CompileException
-    {
-        nextToken(lex);
-        
-        List<Statement> stats = new ArrayList<Statement>();
-        if(_token.getValue() == Lexer.TK_STRING_LITERAL)
-        {
-            stats.add(new GotoStatement(block, _token.getStringValue()));
-            nextToken(lex);
-            if(!isEndOfStatement(lex)) EmitCompileError("Expected end of expression after statement.");
-            
-            return stats;
-        }
-        else 
-        {
-            EmitCompileError("Expected string constant after goto.");
-            return null;
-        }
-    }
-    
-    private List<Statement> processExpression(Lexer lex) throws IOException, CompileException
-    {
-        List<Token> tokens = new ArrayList<Token>();
-        
-        do
-        {
-            nextToken(lex);
-            
-            switch (_token.getValue())
-            {
-                case '+':
-                case '-':
-                case '*':
-                case '/':
-                case '=':
-                case '<':
-                case '>':
-                case '!':
-                case '(':
-                case ')':
-                case '%':
-                case Lexer.TK_DIVEQ:
-                case Lexer.TK_EQ:
-                case Lexer.TK_LE:
-                case Lexer.TK_GE:
-                case Lexer.TK_NE:
-                case Lexer.TK_AND:
-                case Lexer.TK_OR:
-                case Lexer.TK_MULEQ:
-                case Lexer.TK_MODEQ:
-                case Lexer.TK_MINUSEQ:
-                case Lexer.TK_PLUSEQ:
-                case Lexer.TK_MINUSMINUS:
-                case Lexer.TK_PLUSPLUS:
-                case Lexer.TK_FLOAT:
-                case Lexer.TK_STRING_LITERAL:
-                case Lexer.TK_INTEGER:
-                case Lexer.TK_VARIABLE:
-                case Lexer.TK_TRUE:
-                case Lexer.TK_FALSE:
-                case Lexer.TK_NULL:
-                    tokens.add(_token);
-                    break;
-                default:
-                    EmitCompileError("Invalid token in expression");
-                    break;
-            }
-        }
-        while (_token.getValue() != ';');
-        
-        return scanExpressionAndEmitStatements(tokens);
-    }
-    
-    private List<Statement> scanExpressionAndEmitStatements(List<Token> tokens) throws CompileException
-    {
-        return null;
-    }
-    
     private boolean nextToken(Lexer lex) throws IOException
     {
         _token = lex.nextToken();
         
         if(_token.getValue() > 0) return true;
         else return false;
-    }
-    
-    private Location getTopLocation()
-    {
-        Location item = null;
-        for(Object obj : _stack)
-        {
-            if(obj.getClass() == Location.class)
-            {
-                item = (Location)obj;
-                break;
-            }
-        }
-        
-        return item;
-    }
-    
-    private StatementBlock getTopStatementBlock()
-    {
-        StatementBlock item = null;
-        for(Object obj : _stack)
-        {
-            if(StatementBlock.class.isAssignableFrom(obj.getClass()))
-            {
-                item = (StatementBlock)obj;
-                break;
-            }
-        }
-        
-        return item;
     }
 }

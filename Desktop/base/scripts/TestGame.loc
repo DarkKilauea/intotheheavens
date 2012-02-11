@@ -1,3 +1,8 @@
+/*
+Test Location File
+*/
+
+//Starting location
 location "Start"
 {
 	event "OnEnter"
@@ -9,6 +14,14 @@ location "Start"
 	
 	command "North"
 	{
+		a = 42;
+		$global = a * 5;
+		
+		if ($global == 90)
+		{
+			print "Test!";
+		}
+		
 		print "You cannot go north."
 	}
 	

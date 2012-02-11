@@ -155,8 +155,8 @@ public class MainGameMode extends GameMode implements IVirtualMachineListener
             Location curLocation = _world.getCurrentLocation();
             if(curLocation != null)
             {
-                StatementBlock handler = curLocation.getCommandHandler(name);
-                if(handler != null) _vm.executeStatementBlock(handler, arguments);
+                Closure handler = curLocation.getCommandHandler(name);
+                if(handler != null) _vm.executeClosure(handler, arguments);
             }
         }
         catch(ScriptException ex)
@@ -181,8 +181,8 @@ public class MainGameMode extends GameMode implements IVirtualMachineListener
                 ArrayList<Variable> args = new ArrayList<Variable>(1);
                 args.add(new Variable("prevLocation", ""));
 
-                StatementBlock onEnter = curLocation.getEventHandler("OnEnter");
-                if(onEnter != null) _vm.executeStatementBlock(onEnter, args);
+                Closure onEnter = curLocation.getEventHandler("OnEnter");
+                if(onEnter != null) _vm.executeClosure(onEnter, args);
             }
             else throw new Exception("Starting location could not be found!");
         }
@@ -202,11 +202,11 @@ public class MainGameMode extends GameMode implements IVirtualMachineListener
     }
 
     @Override
-    public void onInvokePrint(PrintStatement statement) 
+    public void onInvokePrint(String message) 
     {
         try
         {
-            printToAllListeners(statement.getMessage());
+            printToAllListeners(message);
         }
         /*catch(ScriptException ex)
         {
@@ -219,7 +219,7 @@ public class MainGameMode extends GameMode implements IVirtualMachineListener
     }
 
     @Override
-    public void onInvokeGoto(GotoStatement statement) 
+    public void onInvokeGoto(String locationName) 
     {
         try
         {
@@ -228,33 +228,33 @@ public class MainGameMode extends GameMode implements IVirtualMachineListener
             if(curLocation != null)
             {
                 oldLocationName = curLocation.getName();
-                StatementBlock onLeave = curLocation.getEventHandler("OnLeave");
+                Closure onLeave = curLocation.getEventHandler("OnLeave");
                 if(onLeave != null) 
                 {
                     ArrayList<Variable> args = new ArrayList<Variable>(1);
-                    args.add(new Variable("nextLocation", statement.getLocationName()));
+                    args.add(new Variable("nextLocation", locationName));
 
-                    _vm.executeStatementBlock(onLeave, args);
+                    _vm.executeClosure(onLeave, args);
                 }
             }
 
-            Location newLocation = _world.findLocation(statement.getLocationName());
+            Location newLocation = _world.findLocation(locationName);
             if(newLocation != null)
             {
                 clearAllListeners();
 
-                StatementBlock onEnter = newLocation.getEventHandler("OnEnter");
+                Closure onEnter = newLocation.getEventHandler("OnEnter");
                 if(onEnter != null)
                 {
                     ArrayList<Variable> args = new ArrayList<Variable>(1);
                     args.add(new Variable("prevLocation", oldLocationName));
 
-                    _vm.executeStatementBlock(onEnter, args);
+                    _vm.executeClosure(onEnter, args);
                 }
 
                 _world.setCurrentLocation(newLocation);
             }
-            else throw new ScriptException("Location \"" + statement.getLocationName() + "\" could not be found.", statement);
+            else throw new ScriptException("Location \"" + locationName + "\" could not be found.");
         }
         catch(ScriptException ex)
         {

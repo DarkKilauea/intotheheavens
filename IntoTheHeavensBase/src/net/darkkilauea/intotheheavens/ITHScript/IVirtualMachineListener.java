@@ -10,6 +10,6 @@ package net.darkkilauea.intotheheavens.ITHScript;
  */
 public interface IVirtualMachineListener 
 {
-    public void onInvokePrint(PrintStatement statement);
-    public void onInvokeGoto(GotoStatement statement);
+    public void onInvokePrint(String message);
+    public void onInvokeGoto(String locationName);
 }

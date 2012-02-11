@@ -14,8 +14,8 @@ import java.util.List;
 public class Location 
 {
     private String _name = null;
-    private List<StatementBlock> _commandHandlers = new ArrayList<StatementBlock>();
-    private List<StatementBlock> _eventHandlers = new ArrayList<StatementBlock>();
+    private List<Closure> _commandHandlers = new ArrayList<Closure>();
+    private List<Closure> _eventHandlers = new ArrayList<Closure>();
 
     /**
      * Get the value of name
@@ -42,7 +42,7 @@ public class Location
      *
      * @return the value of commandHandlers
      */
-    public List<StatementBlock> getCommandHandlers() 
+    public List<Closure> getCommandHandlers() 
     {
         return _commandHandlers;
     }
@@ -52,15 +52,15 @@ public class Location
      *
      * @return the value of eventHandlers
      */
-    public List<StatementBlock> getEventHandlers() 
+    public List<Closure> getEventHandlers() 
     {
         return _eventHandlers;
     }
     
-    public StatementBlock getCommandHandler(String commandName)
+    public Closure getCommandHandler(String commandName)
     {
-        StatementBlock item = null;
-        for(StatementBlock handler : _commandHandlers)
+        Closure item = null;
+        for(Closure handler : _commandHandlers)
         {
             if(handler.getName().equals(commandName))
             {
@@ -72,10 +72,10 @@ public class Location
         return item;
     }
     
-    public StatementBlock getEventHandler(String eventName)
+    public Closure getEventHandler(String eventName)
     {
-        StatementBlock item = null;
-        for(StatementBlock handler : _eventHandlers)
+        Closure item = null;
+        for(Closure handler : _eventHandlers)
         {
             if(handler.getName().equals(eventName))
             {
