@@ -113,4 +113,24 @@ public class ScriptObject
                 return "(null)";
         }
     }
+    
+    public boolean equals(ScriptObject other)
+    {
+        if (_type == other._type)
+        {
+            switch (_type)
+            {
+                case SOT_FLOAT:
+                    return _floatValue == other._floatValue;
+                case SOT_INTEGER:
+                    return _intValue == other._intValue;
+                case SOT_STRING:
+                    return _stringValue.equals(other._stringValue);
+                case SOT_NULL:
+                    return true;
+            }
+        }
+        
+        return false;
+    }
 }

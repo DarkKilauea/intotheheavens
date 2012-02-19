@@ -89,34 +89,40 @@ public class Lexer
     }
     
     public static final int TK_UNKNOWN = 0;
-    public static final int TK_LOCATION = 258;
-    public static final int TK_COMMAND = 259;
-    public static final int TK_STRING_LITERAL = 260;
-    public static final int TK_INTEGER = 261;
-    public static final int TK_FLOAT = 262;
-    public static final int TK_EQ = 263;
-    public static final int TK_NE = 264;
-    public static final int TK_LE = 265;
-    public static final int TK_GE = 266;
-    public static final int TK_AND = 267;
-    public static final int TK_OR = 268;
-    public static final int TK_IF = 269;
-    public static final int TK_ELSE = 270;
-    public static final int TK_NULL = 271;
-    public static final int TK_UMINUS = 273;
-    public static final int TK_PLUSEQ = 274;
-    public static final int TK_MINUSEQ = 275;
-    public static final int TK_PLUSPLUS = 276;
-    public static final int TK_MINUSMINUS = 277;
-    public static final int TK_TRUE = 278;
-    public static final int TK_FALSE = 279;
-    public static final int TK_MULEQ = 280;
-    public static final int TK_DIVEQ = 281;
-    public static final int TK_MODEQ = 282;
-    public static final int TK_VARIABLE = 283;
-    public static final int TK_PRINT = 284;
-    public static final int TK_GOTO = 285;
-    public static final int TK_EVENT = 286;
+    public static final int TK_TOKENS = 57400;
+    public static final int TK_STRING_LITERAL = TK_TOKENS + 1;
+    public static final int TK_INTEGER = TK_TOKENS + 2;
+    public static final int TK_FLOAT = TK_TOKENS + 3;
+    public static final int TK_EQ = TK_TOKENS + 4;
+    public static final int TK_NE = TK_TOKENS + 5;
+    public static final int TK_LE = TK_TOKENS + 6;
+    public static final int TK_GE = TK_TOKENS + 7;
+    public static final int TK_UMINUS = TK_TOKENS + 8;
+    public static final int TK_PLUSEQ = TK_TOKENS + 9;
+    public static final int TK_MINUSEQ = TK_TOKENS + 10;
+    public static final int TK_PLUSPLUS = TK_TOKENS + 11;
+    public static final int TK_MINUSMINUS = TK_TOKENS + 12;
+    public static final int TK_MULEQ = TK_TOKENS + 13;
+    public static final int TK_DIVEQ = TK_TOKENS + 14;
+    public static final int TK_MODEQ = TK_TOKENS + 15;
+    public static final int TK_BITSHIFT_LEFT = TK_TOKENS + 16;
+    public static final int TK_BITSHIFT_RIGHT = TK_TOKENS + 17;
+    public static final int TK_LOCAL_VARIABLE = TK_TOKENS + 18;
+    public static final int TK_GLOBAL_VARIABLE = TK_TOKENS + 19;
+    
+    public static final int TK_KEYWORDS = TK_TOKENS + 100;
+    public static final int TK_LOCATION = TK_KEYWORDS + 1;
+    public static final int TK_COMMAND = TK_KEYWORDS + 2;
+    public static final int TK_IF = TK_KEYWORDS + 3;
+    public static final int TK_ELSE = TK_KEYWORDS + 4;
+    public static final int TK_AND = TK_KEYWORDS + 5;
+    public static final int TK_OR = TK_KEYWORDS + 6;
+    public static final int TK_NULL = TK_KEYWORDS + 7;
+    public static final int TK_TRUE = TK_KEYWORDS + 8;
+    public static final int TK_FALSE = TK_KEYWORDS + 9;
+    public static final int TK_PRINT = TK_KEYWORDS + 10;
+    public static final int TK_GOTO = TK_KEYWORDS + 11;
+    public static final int TK_EVENT = TK_KEYWORDS + 12;
     
     private Reader _reader = null;
     private char _curCharacter = '\0';
@@ -153,6 +159,16 @@ public class Lexer
     public Token getPreviousToken()
     {
         return _prevToken;
+    }
+    
+    public String getStringForToken(int token)
+    {
+        for (String key : _keywords.keySet()) 
+        {
+            if (_keywords.get(key).equals(token)) return key;
+        }
+        
+        return null;
     }
     
     private void next()
@@ -224,6 +240,11 @@ public class Lexer
                         next(); 
                         return setToken(TK_LE);
                     }
+                    else if (_curCharacter == '<')
+                    {
+                        next();
+                        return setToken(TK_BITSHIFT_LEFT);
+                    }
                     else return setToken('<');
 		case '>':
                     next();
@@ -231,6 +252,11 @@ public class Lexer
                     { 
                         next(); 
                         return setToken(TK_GE);
+                    }
+                    else if (_curCharacter == '>')
+                    {
+                        next();
+                        return setToken(TK_BITSHIFT_RIGHT);
                     }
                     else return setToken('>');
 		case '!':
@@ -259,6 +285,7 @@ public class Lexer
                 case '?': 
                 case '^': 
                 case '~':
+                case ':':
                     int ret = _curCharacter;
                     next();
                     return setToken(ret);
@@ -334,7 +361,7 @@ public class Lexer
                     {
                         return setToken(readNumber());
                     }
-                    else if (Character.isLetterOrDigit(_curCharacter) || _curCharacter == '_') 
+                    else if (Character.isLetterOrDigit(_curCharacter) || _curCharacter == '_' || _curCharacter == '$') 
                     {
                         return setToken(readId());
                     }
@@ -450,7 +477,8 @@ public class Lexer
     private int getIdType(String id)
     {
         if(_keywords.containsKey(id)) return _keywords.get(id);
-        else return TK_VARIABLE;
+        else if (id.startsWith("$")) return TK_GLOBAL_VARIABLE;
+        else return TK_LOCAL_VARIABLE;
     }
     
     private Token readId()
@@ -465,7 +493,7 @@ public class Lexer
         while(Character.isLetterOrDigit(_curCharacter) || _curCharacter == '_' || _curCharacter == '$');
         
         int res = getIdType(temp);
-        if(res == TK_VARIABLE) return new Token(res, _curLine, _curColumn, temp);
+        if(res == TK_LOCAL_VARIABLE || res == TK_GLOBAL_VARIABLE) return new Token(res, _curLine, _curColumn, temp);
         else return new Token(res, _curLine, _curColumn);
     }
     

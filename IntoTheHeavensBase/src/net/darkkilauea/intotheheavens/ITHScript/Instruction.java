@@ -40,6 +40,14 @@ public class Instruction
         _arg2 = arg2;
         _arg3 = arg3;
     }
+    
+    protected void SetArgs(int arg0, int arg1, int arg2, int arg3)
+    {
+        _arg0 = arg0;
+        _arg1 = arg1;
+        _arg2 = arg2;
+        _arg3 = arg3;
+    }
 
     @Override
     public String toString() 

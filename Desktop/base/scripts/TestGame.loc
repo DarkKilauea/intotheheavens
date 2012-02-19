@@ -14,14 +14,12 @@ location "Start"
 	
 	command "North"
 	{
-		a = 42;
-		$global = a * 5;
-		
-		if ($global == 90)
 		{
-			print "Test!";
+			a = 5;
+			print a > 6 ? "true" : "false"
 		}
 		
+		print a
 		print "You cannot go north."
 	}
 	

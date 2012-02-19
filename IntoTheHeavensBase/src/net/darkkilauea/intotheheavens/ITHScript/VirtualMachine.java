@@ -87,7 +87,7 @@ public class VirtualMachine
                         stack[currentScope + i._arg0] = stack[currentScope + i._arg1];
                         break;
                     case OP_COMPARE:
-                        boolean res = compareObjects(stack[currentScope + i._arg1], stack[currentScope + i._arg2], i._arg3);
+                        boolean res = compareObjects(stack[currentScope + i._arg2], stack[currentScope + i._arg1], i._arg3);
                         stack[currentScope + i._arg0] = new ScriptObject(res ? 1 : 0);
                         break;
                     case OP_ADD:
@@ -95,10 +95,10 @@ public class VirtualMachine
                     case OP_MULTIPLY:
                     case OP_DIVIDE:
                     case OP_MODULO:
-                        stack[currentScope + i._arg0] = performArithmetic(i._op, stack[currentScope + i._arg1], stack[currentScope + i._arg2]);
+                        stack[currentScope + i._arg0] = performArithmetic(i._op, stack[currentScope + i._arg2], stack[currentScope + i._arg1]);
                         break;
                     case OP_BITWISE:
-                        stack[currentScope + i._arg0] = performBitwiseOperation(stack[currentScope + i._arg1], stack[currentScope + i._arg2], i._arg3);
+                        stack[currentScope + i._arg0] = performBitwiseOperation(stack[currentScope + i._arg2], stack[currentScope + i._arg1], i._arg3);
                         break;
                     case OP_JUMP:
                     {
@@ -175,11 +175,13 @@ public class VirtualMachine
                         {
                             listener.onInvokePrint(stack[currentScope + i._arg0].toString());
                         }
+                        break;
                     case OP_GOTO:
                         for (IVirtualMachineListener listener : _listeners) 
                         {
                             listener.onInvokeGoto(stack[currentScope + i._arg0].toString());
                         }
+                        break;
                 }
                 current++;
             }
