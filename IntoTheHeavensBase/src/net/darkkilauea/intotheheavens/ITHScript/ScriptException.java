@@ -27,9 +27,9 @@ public class ScriptException extends Exception
     private static String formatMessage(String msg, int line, Closure closure, Location location)
     {
         String message = "Runtime Error: " + msg + 
-                "\ncaused by line: " + line + " in " +
-                "\nClosure: " + closure.getName() + " in " +
-                "\nLocation: " + location.getName();
+                "\ncaused by line: " + line + 
+                "\nin Closure: " + closure.getName() + 
+                "\nin Location: " + location.getName();
         
         return message;
     }

@@ -16,7 +16,7 @@ public class VirtualMachine
 {
     private List<IVirtualMachineListener> _listeners = new ArrayList<IVirtualMachineListener>();
     private List<Variable> _globals = new ArrayList<Variable>();
-    private int _stackSize = 256;
+    private int _stackSize = 64;
     
     public boolean registerListener(IVirtualMachineListener listener)
     {
@@ -152,24 +152,6 @@ public class VirtualMachine
                     case OP_LOGICAL_NOT:
                         stack[currentScope + i._arg0] = new ScriptObject(!IsTruth(stack[currentScope + i._arg1]) ? 1 : 0);
                         break;
-                    case OP_SCOPE_BEGIN:
-                    {
-                        int stackPos = i._arg0;
-                        _scopes.push(stackPos);
-                        currentScope = stackPos;
-                    }
-                        break;
-                    case OP_SCOPE_END:
-                    {
-                        //Collapse the stack, erasing what was there
-                        int stackPos = _scopes.pop();
-                        for (int j = stackPos; j < currentScope; j++) 
-                        {
-                            stack[j] = new ScriptObject();
-                        }
-                        currentScope = stackPos;
-                    }
-                        break;
                     case OP_PRINT:
                         for (IVirtualMachineListener listener : _listeners) 
                         {
@@ -303,8 +285,8 @@ public class VirtualMachine
                         else return new ScriptObject(left.toInt() % right.toInt());
                 }
                 break;
-            case ScriptObject.SOT_INTEGER | ScriptObject.SOT_FLOAT:
             case ScriptObject.SOT_FLOAT:
+            case ScriptObject.SOT_INTEGER | ScriptObject.SOT_FLOAT:
                 switch (op)
                 {
                     case OP_ADD:
@@ -369,7 +351,7 @@ public class VirtualMachine
                 break;
         }
         
-        throw new Exception(errorMsg + " between " + left.typeString() + " and " + right.typeString() + " not allowed.");
+        throw new Exception(errorMsg + "between " + left.typeString() + " and " + right.typeString() + " not allowed.");
     }
     
     private ScriptObject performBitwiseOperation(ScriptObject left, ScriptObject right, int op) throws Exception

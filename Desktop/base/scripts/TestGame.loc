@@ -14,12 +14,17 @@ location "Start"
 	
 	command "North"
 	{
+		//$test = 1
+		//print $test
+	
 		{
-			a = 5;
-			print a > 6 ? "true" : "false"
+			a = 7
+			a = !a
+			print a
+			print a < 0 ? "true" : "false"
 		}
 		
-		print a
+		print a + "nuff" + " zing!"
 		print "You cannot go north."
 	}
 	

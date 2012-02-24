@@ -33,10 +33,6 @@ public enum OpCode
     OP_LOGICAL_AND      (0x14),
     OP_LOGICAL_OR       (0x15),
     OP_LOGICAL_NOT      (0x16),
-    OP_SCOPE_BEGIN      (0x20),
-    OP_SCOPE_END        (0x21),
-    //OP_LOCAL            (0x22),
-    //OP_GLOBAL           (0x23),
     
     //Commands
     OP_PRINT            (0x40),

@@ -120,10 +120,8 @@ public class LocationFileParser
                         _currentClosure = new Closure(_currentLocation, name);
                         _currentLocation.getCommandHandlers().add(_currentClosure);
                         
-                        nextToken(lex);
-                        processStatements(lex);
-                        
-                        expectToken(lex, _blockEnd);
+                        //Process entire block
+                        processStatement(lex);
                     }
                     else EmitCompileError("Block start \"{\" expected.");
                 }
@@ -140,10 +138,8 @@ public class LocationFileParser
                         _currentClosure = new Closure(_currentLocation, name);
                         _currentLocation.getEventHandlers().add(_currentClosure);
                         
-                        nextToken(lex);
-                        processStatements(lex);
-                        
-                        expectToken(lex, _blockEnd);
+                        //Process entire block
+                        processStatement(lex);
                     }
                     else EmitCompileError("Block start \"{\" expected.");
                 }
@@ -416,6 +412,7 @@ public class LocationFileParser
                 {
                     int src = _currentClosure.popTarget();
                     int dst = _currentClosure.popTarget();
+                    _currentClosure.pushTarget(dst);
                     
                     switch (op)
                     {
@@ -852,8 +849,14 @@ public class LocationFileParser
             {
                 String name = _token.getStringValue();
                 
-                int pos = _currentClosure.getLocalVariable(name);
-                if (pos < 0) pos = _currentClosure.pushLocalVariable(name);
+                int pos = _currentClosure.getVariable(name);
+                if (pos < 0) 
+                {
+                    pos = _currentClosure.pushVariable(name);
+                    
+                    //Implicitly load NULL
+                    _currentClosure.getInstructions().add(new Instruction(OpCode.OP_LOAD, pos, _currentClosure.getOrCreateLiteral(new ScriptObject()), 0, 0));
+                }
                 
                 _currentClosure.pushTarget(pos);
                 _expState.type = ExpressionState.Local;

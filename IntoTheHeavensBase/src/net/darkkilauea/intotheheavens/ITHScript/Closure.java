@@ -16,6 +16,7 @@ public class Closure
     private List<Instruction> _instructions = new ArrayList<Instruction>();
     private List<ScriptObject> _literals = new ArrayList<ScriptObject>();
     private List<Variable> _locals = new ArrayList<Variable>();
+    private List<Variable> _globals = new ArrayList<Variable>();
     private List<Variable> _stackLocals = new ArrayList<Variable>();
     private List<Integer> _targetStack = new ArrayList<Integer>();
     private String _name = null;
@@ -34,6 +35,11 @@ public class Closure
     protected List<Variable> getLocals() 
     {
         return _locals;
+    }
+
+    public List<Variable> getGlobals() 
+    {
+        return _globals;
     }
     
     protected List<Variable> getStackLocals() 
@@ -108,7 +114,8 @@ public class Closure
             Variable local = _stackLocals.get(_stackLocals.size() - 1);
             if (local.getName() != null)
             {
-                _locals.add(local);
+                if (local.getName().startsWith("$")) _globals.add(local);
+                else _locals.add(local);
             }
             
             _stackLocals.remove(local);
@@ -142,7 +149,7 @@ public class Closure
         return location;
     }
     
-    protected int pushLocalVariable(String name)
+    protected int pushVariable(String name)
     {
         int pos = _stackLocals.size();
         Variable local = new Variable(name);
@@ -150,7 +157,7 @@ public class Closure
         return pos;
     }
     
-    protected int getLocalVariable(String name)
+    protected int getVariable(String name)
     {
         int pos = _stackLocals.size() - 1;
         while (pos >= 0)
