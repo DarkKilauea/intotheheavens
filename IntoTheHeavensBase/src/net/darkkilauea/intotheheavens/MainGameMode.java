@@ -28,27 +28,6 @@ public class MainGameMode extends GameMode implements IVirtualMachineListener
         super.initialize(manager);
         
         _vm.registerListener(this);
-
-        _commands.add(new Command("Help", 
-                                  "^help\\s*(\\w+)?\\s*$", 
-                                  "Lists all commands with descriptions or more detail about a single command.", 
-                                  "Usage: help <command>"));
-        _commands.add(new Command("North", 
-                                  "^north\\s*$", 
-                                  "Travels north of your current location.", 
-                                  "Usage: north"));
-        _commands.add(new Command("East", 
-                                  "^east\\s*$", 
-                                  "Travels east of your current location.", 
-                                  "Usage: east"));
-        _commands.add(new Command("South", 
-                                  "^south\\s*$", 
-                                  "Travels south of your current location.", 
-                                  "Usage: south"));
-        _commands.add(new Command("West", 
-                                  "^west\\s*$", 
-                                  "Travels west of your current location.", 
-                                  "Usage: west"));
         
         return true;
     }
@@ -78,86 +57,28 @@ public class MainGameMode extends GameMode implements IVirtualMachineListener
     {
         try
         {
-            Command command = getCommandThatHandlesString(input);
-            if(command != null)
+            String[] splitInput = input.split("\\s");
+            List<Variable> args = new ArrayList<Variable>();
+            for (int i = 0; i < splitInput.length; i++) 
             {
-                if(command.parseCommandString(input))
-                {
-                    onCommandExecuted(command);
-                }
-                else printToAllListeners("Incorrect syntax.  Type \"help <command>\" for details.");
-            }
-            else
-            {
-                onCommandExecuted(new Command());
-            }
-        }
-        catch (Exception ex) 
-        {
-            printToAllListeners("Exception Caught: " + ex.toString());
-        }
-    }
-
-    public void onCommandExecuted(Command command) 
-    {
-        if(command.getName().equalsIgnoreCase("Help"))
-        {
-            String output = "";
-            if(command.getParameters().size() > 0)
-            {
-                String commandName = (String)command.getParameters().get(0);
-                Command target = getCommandForName(commandName);
-                if(target != null) 
-                    output = target.getUsageHelp() + "\n" + "Description: " + target.getDescription();
-                else 
-                    output = "No command of that name could be found, type \"help\" for a list of available commands.";
-            }
-            else
-            {
-                output = "List of available commands: \n\n";
-
-                for(Command aCommand : _commands)
-                {
-                    output += aCommand.getName() + ": " + aCommand.getDescription() + "\n";
-                }
+                Variable arg = new Variable("$arg" + i, splitInput[i].toLowerCase());
                 
-                output = output.substring(0, output.length() - 1);
+                try
+                {
+                    arg.setValue(arg.toFloat());
+                }
+                catch (Exception ex) {}
+                
+                try
+                {
+                    arg.setValue(arg.toInt());
+                }
+                catch (Exception ex) {}
+                
+                args.add(arg);
             }
             
-            printToAllListeners(output);
-        }
-        else if (command.getName().equalsIgnoreCase("North"))
-        {
-            executeCommandHandler("North", new ArrayList<Variable>());
-        }
-        else if (command.getName().equalsIgnoreCase("East"))
-        {
-            executeCommandHandler("East", new ArrayList<Variable>());
-        }
-        else if (command.getName().equalsIgnoreCase("South"))
-        {
-            executeCommandHandler("South", new ArrayList<Variable>());
-        }
-        else if (command.getName().equalsIgnoreCase("West"))
-        {
-            executeCommandHandler("West", new ArrayList<Variable>());
-        }
-        else
-        {
-            printToAllListeners("Command not recognized, type \"help\" for a list of available commands.");
-        }
-    }
-    
-    private void executeCommandHandler(String name, List<Variable> arguments)
-    {
-        try
-        {
-            Location curLocation = _world.getCurrentLocation();
-            if(curLocation != null)
-            {
-                Closure handler = curLocation.getCommandHandler(name);
-                if(handler != null) _vm.executeClosure(handler, arguments);
-            }
+            executeCommandHandler(args.get(0).toString(), args);
         }
         catch(ScriptException ex)
         {
@@ -179,11 +100,11 @@ public class MainGameMode extends GameMode implements IVirtualMachineListener
             Location curLocation = _world.getCurrentLocation();
             if(curLocation != null)
             {
-                ArrayList<Variable> args = new ArrayList<Variable>(1);
-                args.add(new Variable("prevLocation", ""));
+                ArrayList<Variable> args = new ArrayList<Variable>(2);
+                args.add(new Variable("$arg0", "OnEnter"));
+                args.add(new Variable("$arg1"));
 
-                Closure onEnter = curLocation.getEventHandler("OnEnter");
-                if(onEnter != null) _vm.executeClosure(onEnter, args);
+                executeEventHandler("OnEnter", args);
             }
             else throw new Exception("Starting location could not be found!");
         }
@@ -200,6 +121,57 @@ public class MainGameMode extends GameMode implements IVirtualMachineListener
     public WorldState getWorldState()
     {
         return _world;
+    }
+    
+    private void executeCommandHandler(String name, List<Variable> args) throws ScriptException, Exception
+    {
+        Location curLocation = _world.getCurrentLocation();
+        if(curLocation != null)
+        {
+            Closure handler = curLocation.getCommandHandler(name);
+            if(handler != null) _vm.executeClosure(handler, args);
+            else
+            {
+                Location defaultLoc = _world.findLocation("__DEFAULT__");
+                if (defaultLoc != null)
+                {
+                    handler = defaultLoc.getCommandHandler(name);
+                    if(handler != null) _vm.executeClosure(handler, args);
+                    else
+                    {
+                        handler = defaultLoc.getCommandHandler("__UNHANDLED__");
+                        if (handler != null) _vm.executeClosure(handler, args);
+                        else throw new Exception("Could not find a handler for command '" + name + "'!");
+                    }
+                }
+                else throw new Exception("Could not find a handler for command '" + name + "'!");
+            }
+        }
+        else throw new Exception("Cannot execute a command outside of a location!");
+    }
+    
+    private void executeEventHandler(String name, List<Variable> args) throws ScriptException
+    {
+        Location curLocation = _world.getCurrentLocation();
+        if(curLocation != null)
+        {
+            Closure handler = curLocation.getEventHandler(name);
+            if(handler != null) _vm.executeClosure(handler, args);
+            else
+            {
+                Location defaultLoc = _world.findLocation("__DEFAULT__");
+                if (defaultLoc != null)
+                {
+                    handler = defaultLoc.getEventHandler(name);
+                    if(handler != null) _vm.executeClosure(handler, args);
+                    else
+                    {
+                        handler = defaultLoc.getEventHandler("__UNHANDLED__");
+                        if (handler != null) _vm.executeClosure(handler, args);
+                    }
+                }
+            }
+        }
     }
 
     @Override
@@ -229,31 +201,25 @@ public class MainGameMode extends GameMode implements IVirtualMachineListener
             if(curLocation != null)
             {
                 oldLocationName = curLocation.getName();
-                Closure onLeave = curLocation.getEventHandler("OnLeave");
-                if(onLeave != null) 
-                {
-                    ArrayList<Variable> args = new ArrayList<Variable>(1);
-                    args.add(new Variable("nextLocation", locationName));
-
-                    _vm.executeClosure(onLeave, args);
-                }
+                
+                ArrayList<Variable> args = new ArrayList<Variable>(2);
+                args.add(new Variable("$arg0", "OnLeave"));
+                args.add(new Variable("$arg1", locationName));
+                
+                executeEventHandler("OnLeave", args);
             }
 
             Location newLocation = _world.findLocation(locationName);
             if(newLocation != null)
             {
                 clearAllListeners();
-
-                Closure onEnter = newLocation.getEventHandler("OnEnter");
-                if(onEnter != null)
-                {
-                    ArrayList<Variable> args = new ArrayList<Variable>(1);
-                    args.add(new Variable("prevLocation", oldLocationName));
-
-                    _vm.executeClosure(onEnter, args);
-                }
-
+                
+                ArrayList<Variable> args = new ArrayList<Variable>(2);
+                args.add(new Variable("$arg0", "OnEnter"));
+                args.add(new Variable("$arg1", oldLocationName));
+                
                 _world.setCurrentLocation(newLocation);
+                executeEventHandler("OnEnter", args);
             }
             else throw new ScriptException("Location \"" + locationName + "\" could not be found.");
         }

@@ -12,33 +12,26 @@ location "Start"
 		print "There is a opening in the foliage to the east."
 	}
 	
-	command "North"
+	command "Go"
 	{
+		if ($arg1 == "north")
 		{
-			a = 7
-			a = !a
-			print a
-			print a < 0 ? "true" : "false"
+			print "You cannot go north."
 		}
-		
-		print a + "nuff" + " zing!"
-		print "You cannot go north."
-	}
-	
-	command "East"
-	{
-		print "You walk east."
-		goto "East Of Start"
-	}
-	
-	command "South"
-	{
-		print "You cannot go south."
-	}
-	
-	command "West"
-	{
-		print "You cannot go west."
+		else if ($arg1 == "east")
+		{
+			print "You walk east."
+			goto "East Of Start"
+		}
+		else if ($arg1 == "south")
+		{
+			print "You cannot go south."
+		}
+		else if ($arg1 == "west")
+		{
+			print "You cannot go west."
+		}
+		else print "I don't understand where you wish to go."
 	}
 }
 
@@ -51,24 +44,33 @@ location "East Of Start"
 		print "There is a opening in the foliage to the west.";
 	}
 	
-	command "North"
+	command "Go"
 	{
-		print "You still cannot go north."
+		if ($arg1 == "north")
+		{
+			print "You cannot go north."
+		}
+		else if ($arg1 == "east")
+		{
+			print "You cannot go east."
+		}
+		else if ($arg1 == "south")
+		{
+			print "You cannot go south."
+		}
+		else if ($arg1 == "west")
+		{
+			print "You walk west."
+			goto "Start"
+		}
+		else print "I don't understand where you wish to go."
 	}
-	
-	command "East"
+}
+
+location "__DEFAULT__"
+{
+	command "__UNHANDLED__"
 	{
-		print "You cannot go east."
-	}
-	
-	command "South"
-	{
-		print "You cannot go south."
-	}
-	
-	command "West"
-	{
-		print "You walk west."
-		goto "Start"
+		print "Sorry, the command " + $arg0 + " is not supported."
 	}
 }

@@ -62,7 +62,7 @@ public class Location
         Closure item = null;
         for(Closure handler : _commandHandlers)
         {
-            if(handler.getName().equals(commandName))
+            if(handler.getName().equalsIgnoreCase(commandName))
             {
                 item = handler;
                 break;
@@ -77,7 +77,7 @@ public class Location
         Closure item = null;
         for(Closure handler : _eventHandlers)
         {
-            if(handler.getName().equals(eventName))
+            if(handler.getName().equalsIgnoreCase(eventName))
             {
                 item = handler;
                 break;

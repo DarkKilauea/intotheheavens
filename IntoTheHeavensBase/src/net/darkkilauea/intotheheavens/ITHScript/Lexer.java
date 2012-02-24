@@ -231,7 +231,7 @@ public class Lexer
                     else 
                     { 
                         next(); 
-                        setToken(TK_EQ); 
+                        return setToken(TK_EQ); 
                     }
 		case '<':
                     next();
