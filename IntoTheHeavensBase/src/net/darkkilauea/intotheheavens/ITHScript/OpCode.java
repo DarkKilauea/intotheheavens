@@ -36,7 +36,8 @@ public enum OpCode
     
     //Commands
     OP_PRINT            (0x40),
-    OP_GOTO             (0x41);
+    OP_GOTO             (0x41),
+    OP_CALL_BASE        (0x42);
     
     private final byte _value;
     OpCode(int value)

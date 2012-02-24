@@ -232,4 +232,29 @@ public class MainGameMode extends GameMode implements IVirtualMachineListener
             printToAllListeners(ex.toString());
         }
     }
+    
+    @Override
+    public void onCallBase(String name, List<Variable> args)
+    {
+        try
+        {
+            Location defaultLoc = _world.findLocation("__DEFAULT__");
+            if (defaultLoc != null)
+            {
+                Closure handler = defaultLoc.getEventHandler(name);
+                if(handler != null) _vm.executeClosure(handler, args);
+                
+                handler = defaultLoc.getCommandHandler(name);
+                if(handler != null) _vm.executeClosure(handler, args);
+            }
+        }
+        catch(ScriptException ex)
+        {
+            printToAllListeners(ex.getMessage());
+        }
+        catch(Exception ex)
+        {
+            printToAllListeners(ex.toString());
+        }
+    }
 }

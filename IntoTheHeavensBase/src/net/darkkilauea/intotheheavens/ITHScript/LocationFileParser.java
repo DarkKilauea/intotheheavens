@@ -260,6 +260,9 @@ public class LocationFileParser
             case Lexer.TK_GOTO:
                 processGotoStatement(lex);
                 break;
+            case Lexer.TK_BASE:
+                processBaseStatement(lex);
+                break;
             case _blockStart:
                 beginScope();
                 nextToken(lex);
@@ -337,6 +340,14 @@ public class LocationFileParser
         processExpression(lex);
         
         _currentClosure.getInstructions().add(new Instruction(OpCode.OP_GOTO, _currentClosure.popTarget(), 0, 0, 0));
+    }
+    
+    private void processBaseStatement(Lexer lex) throws IOException, CompileException
+    {
+        nextToken(lex);
+        ExpectEndOfStatement(lex);
+        
+        _currentClosure.getInstructions().add(new Instruction(OpCode.OP_CALL_BASE, 0, 0, 0, 0));
     }
     
     private void processCommaExpression(Lexer lex) throws IOException, CompileException

@@ -159,6 +159,12 @@ public class VirtualMachine
                             listener.onInvokeGoto(stack[currentScope + i._arg0].toString());
                         }
                         break;
+                    case OP_CALL_BASE:
+                        for (IVirtualMachineListener listener : _listeners) 
+                        {
+                            listener.onCallBase(closure.getName(), args);
+                        }
+                        break;
                 }
                 current++;
             }
