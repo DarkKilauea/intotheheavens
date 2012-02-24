@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import net.darkkilauea.intotheheavens.ITHScript.Closure;
 import net.darkkilauea.intotheheavens.ITHScript.CompileException;
 import net.darkkilauea.intotheheavens.ITHScript.Location;
 import net.darkkilauea.intotheheavens.ITHScript.LocationFileParser;
@@ -102,7 +103,20 @@ public class WorldState
                 LocationFileParser parser = new LocationFileParser(file.getPath());
                 parser.parseFile();
                 _locations.addAll(parser.getLocations());
-                _globals.addAll(parser.getGlobals());
+            }
+        }
+        
+        //Locate all of our globals
+        for (Location location : _locations) 
+        {
+            for (Closure closure : location.getEventHandlers()) 
+            {
+                gatherGlobalsFromClosure(closure);
+            }
+
+            for (Closure closure : location.getCommandHandlers()) 
+            {
+                gatherGlobalsFromClosure(closure);
             }
         }
     }
@@ -154,5 +168,26 @@ public class WorldState
         else return false;
         
         return true;
+    }
+    
+    private void gatherGlobalsFromClosure(Closure closure)
+    {
+        for (Variable local : closure.getGlobals())
+        {
+            boolean exists = false;
+            for (Variable global : _globals) 
+            {
+                if (global.getName().equals(local.getName()))
+                {
+                    exists = true;
+                    break;
+                }
+            }
+
+            if (!exists)
+            {
+                _globals.add(local);
+            }
+        }
     }
 }

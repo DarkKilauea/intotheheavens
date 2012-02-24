@@ -14,9 +14,6 @@ location "Start"
 	
 	command "North"
 	{
-		//$test = 1
-		//print $test
-	
 		{
 			a = 7
 			a = !a

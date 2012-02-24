@@ -172,6 +172,7 @@ public class MainGameMode extends GameMode implements IVirtualMachineListener
     public void loadFromWorldState(WorldState world)
     {
         _world = world;
+        _vm.setGlobals(_world.getGlobals());
         
         try
         {

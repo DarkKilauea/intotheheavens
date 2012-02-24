@@ -78,10 +78,10 @@ public class VirtualMachine
                         curLine++;
                         break;
                     case OP_GET:
-                        stack[currentScope + i._arg0] = getVariable(stack[currentScope + i._arg1], args);
+                        stack[currentScope + i._arg0] = getVariable(closure.getLiterals().get(i._arg1), args);
                         break;
                     case OP_SET:
-                        setVariable(stack[currentScope + i._arg1], stack[currentScope + i._arg0], args);
+                        setVariable(closure.getLiterals().get(i._arg1), stack[currentScope + i._arg0], args);
                         break;
                     case OP_MOVE:
                         stack[currentScope + i._arg0] = stack[currentScope + i._arg1];
@@ -426,11 +426,11 @@ public class VirtualMachine
         else throw new Exception("Cannot negate a " + o.typeString() + ".");
     }
     
-    private Variable getVariable(ScriptObject o, List<Variable> args) throws Exception
+    private Variable getVariable(ScriptObject name, List<Variable> args) throws Exception
     {
-        if (o._type == ScriptObject.SOT_STRING)
+        if (name._type == ScriptObject.SOT_STRING)
         {
-            String varName = o.toString();
+            String varName = name.toString();
             
             for (Variable var : args)
             {

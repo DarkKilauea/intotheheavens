@@ -27,7 +27,6 @@ public class LocationFileParser
     private final char _blockEnd = '}';
     
     private List<Location> _locations = new ArrayList<Location>();
-    private List<Variable> _globals = new ArrayList<Variable>();
     private Stack<Integer> _scopes = new Stack<Integer>();
     
     private class ExpressionState
@@ -39,7 +38,7 @@ public class LocationFileParser
         
         int type = 0;
         int pos = 0;
-        boolean noGet = false;
+        int globalNameIdx = -1;
         
         public ExpressionState()
         {
@@ -50,7 +49,7 @@ public class LocationFileParser
         {
             type=other.type;
             pos=other.pos;
-            noGet=other.noGet;
+            globalNameIdx=other.globalNameIdx;
         }
     }
     
@@ -59,11 +58,6 @@ public class LocationFileParser
     public List<Location> getLocations()
     {
         return _locations;
-    }
-    
-    public List<Variable> getGlobals()
-    {
-        return _globals;
     }
     
     public LocationFileParser(String filename)
@@ -362,7 +356,7 @@ public class LocationFileParser
         ExpressionState oldState = new ExpressionState(_expState);
         _expState.type = ExpressionState.Expression;
         _expState.pos = -1;
-        _expState.noGet = false;
+        _expState.globalNameIdx = -1;
         
         processLogicalOrExpression(lex);
         
@@ -371,7 +365,7 @@ public class LocationFileParser
             case '=':
             {
                 int type = _expState.type;
-                int pos = _expState.pos;
+                int globalNameIdx = _expState.globalNameIdx;
                 
                 if (type == ExpressionState.Expression) EmitCompileError("Assignment to an expression is not allowed.");
                 
@@ -387,8 +381,9 @@ public class LocationFileParser
                 else if (type == ExpressionState.Global)
                 {
                     int src = _currentClosure.popTarget();
-                    int dst = _currentClosure.pushTarget(-1);
-                    _currentClosure.getInstructions().add(new Instruction(OpCode.OP_SET, dst, pos, src, 0));
+                    int dst = _currentClosure.topTarget();
+                    _currentClosure.getInstructions().add(new Instruction(OpCode.OP_MOVE, dst, src, 0, 0));
+                    _currentClosure.getInstructions().add(new Instruction(OpCode.OP_SET, dst, globalNameIdx, 0, 0));
                 }
                 else EmitCompileError("FATAL! UNKNOWN EXPRESSION STATE!");
             }
@@ -401,7 +396,7 @@ public class LocationFileParser
             {
                 int op = _token.getValue();
                 int type = _expState.type;
-                int pos = _expState.pos;
+                int globalNameIdx = _expState.globalNameIdx;
                 
                 if (type == ExpressionState.Expression) EmitCompileError("Assignment to an expression is not allowed.");
                 
@@ -435,9 +430,9 @@ public class LocationFileParser
                 }
                 else if (type == ExpressionState.Global)
                 {
-                    int src = _currentClosure.topTarget();
-                    int dst = _currentClosure.pushTarget(-1);
-                    _currentClosure.getInstructions().add(new Instruction(OpCode.OP_GET, dst, pos, 0, 0));
+                    int src = _currentClosure.popTarget();
+                    int dst = _currentClosure.popTarget();
+                    _currentClosure.pushTarget(dst);
                     
                     switch (op)
                     {
@@ -458,7 +453,7 @@ public class LocationFileParser
                             break;
                     }
                     
-                    _currentClosure.getInstructions().add(new Instruction(OpCode.OP_SET, dst, pos, dst, 0));
+                    _currentClosure.getInstructions().add(new Instruction(OpCode.OP_SET, dst, globalNameIdx, 0, 0));
                 }
                 else EmitCompileError("FATAL! UNKNOWN EXPRESSION STATE!");
             }
@@ -802,12 +797,11 @@ public class LocationFileParser
                     }
                     else if (_expState.type == ExpressionState.Global)
                     {
-                        int pos1 = _currentClosure.pushTarget(-1);
-                        int pos2 = _currentClosure.pushTarget(-1);
+                        int src = _currentClosure.popTarget();
+                        int dst = _currentClosure.pushTarget(-1);
                         
-                        _currentClosure.getInstructions().add(new Instruction(OpCode.OP_GET, pos2, _expState.pos, 0, 0));
-                        _currentClosure.getInstructions().add(new Instruction(OpCode.OP_INCREMENT, pos1, pos2, 0, diff));
-                        _currentClosure.getInstructions().add(new Instruction(OpCode.OP_SET, pos2, _expState.pos, 0, 0));
+                        _currentClosure.getInstructions().add(new Instruction(OpCode.OP_INCREMENT, dst, src, 0, diff));
+                        _currentClosure.getInstructions().add(new Instruction(OpCode.OP_SET, dst, _expState.globalNameIdx, 0, 0));
                     }
                     else EmitCompileError("FATAL! UNKNOWN EXPRESSION STATE!");
                 }
@@ -867,8 +861,23 @@ public class LocationFileParser
                 break;
             case Lexer.TK_GLOBAL_VARIABLE:
             {
-                //TODO: Figure out how to handle this
-                EmitCompileError("GLOBAL VAR not current supported!");
+                String name = _token.getStringValue();
+                _expState.globalNameIdx = _currentClosure.getOrCreateLiteral(new ScriptObject(name));
+                
+                int pos = _currentClosure.getVariable(name);
+                if (pos < 0) 
+                {
+                    pos = _currentClosure.pushVariable(name);
+                    
+                    //Load Global
+                    _currentClosure.getInstructions().add(new Instruction(OpCode.OP_GET, pos, _expState.globalNameIdx, 0, 0));
+                }
+                
+                _currentClosure.pushTarget(pos);
+                _expState.type = ExpressionState.Global;
+                _expState.pos = pos;
+                
+                nextToken(lex);
             }
                 break;
             case '-':
@@ -916,7 +925,7 @@ public class LocationFileParser
                 nextToken(lex);
                 
                 ExpressionState oldState = new ExpressionState(_expState);
-                _expState.noGet = true;
+                
                 processPrefixedExpression(lex);
                 
                 if (_expState.type == ExpressionState.Expression) EmitCompileError("Incrementing or decrementing an expression is not allowed.");
@@ -927,11 +936,10 @@ public class LocationFileParser
                 }
                 else if (_expState.type == ExpressionState.Global)
                 {
-                    int pos1 = _currentClosure.pushTarget(-1);
-
-                    _currentClosure.getInstructions().add(new Instruction(OpCode.OP_GET, pos1, _expState.pos, 0, 0));
-                    _currentClosure.getInstructions().add(new Instruction(OpCode.OP_INCREMENT, pos1, pos1, 0, diff));
-                    _currentClosure.getInstructions().add(new Instruction(OpCode.OP_SET, pos1, _expState.pos, 0, 0));
+                    int src = _currentClosure.topTarget();
+                    int dst = _currentClosure.pushTarget(-1);
+                    _currentClosure.getInstructions().add(new Instruction(OpCode.OP_PREFIX_INCREMENT, dst, src, 0, diff));
+                    _currentClosure.getInstructions().add(new Instruction(OpCode.OP_SET, dst, _expState.globalNameIdx, 0, 0));
                 }
                 else EmitCompileError("FATAL! UNKNOWN EXPRESSION STATE!");
                 
