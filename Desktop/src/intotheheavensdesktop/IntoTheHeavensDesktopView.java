@@ -58,8 +58,13 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
             }
         }
         
-        _saveGameDir = _contentDir + "savegames" + File.separator;
-        _scriptDir = _contentDir + "scripts" + File.separator;
+        String userHomeDir = System.getProperty("user.home");
+        
+        
+        _saveGameDir = userHomeDir + File.separator + ".intotheheavens" + File.separator + "savegames" + File.separator;
+        _scriptDir = _contentDir + File.separator + "scripts" + File.separator;
+        
+        new File(_saveGameDir).mkdirs();
         
         _mainMode = new MainGameMode();
         _mainMode.registerListener(this);
