@@ -50,11 +50,6 @@ public class VirtualMachine
     
     public void executeClosure(Closure closure, List<Variable> args) throws ScriptException
     {
-        for (IVirtualMachineListener listener : _listeners) 
-        {
-            listener.onInvokePrint(closure.toString(true));
-        }
-        
         Stack<Integer> _scopes = new Stack<Integer>();
         int currentScope = 0;
         _scopes.push(currentScope);
