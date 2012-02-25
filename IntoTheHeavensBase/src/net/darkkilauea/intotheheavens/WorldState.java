@@ -6,6 +6,7 @@ package net.darkkilauea.intotheheavens;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -125,12 +126,12 @@ public class WorldState
     {
         DataOutputStream out = new DataOutputStream(stream);
         
-        out.writeInt(CUR_LOCATION_TOKEN);
+        out.write(CUR_LOCATION_TOKEN);
         out.writeUTF(_currentLocation != null ? _currentLocation.getName() : "(null)");
         
         for (Variable var : _globals)
         {
-            out.writeInt(GLOBAL_VAR_VALUE_TOKEN);
+            out.write(GLOBAL_VAR_VALUE_TOKEN);
             out.writeUTF(var.getName());
             out.write(var.getType());
             if (var.getType() == ScriptObject.SOT_STRING) out.writeUTF(var.toString());
@@ -145,27 +146,40 @@ public class WorldState
     {
         DataInputStream in = new DataInputStream(stream);
         
-        if (in.readInt() == CUR_LOCATION_TOKEN)
+        try
         {
-            String locationName = in.readUTF();
-            if(locationName.equals("(null)")) _currentLocation = null;
-            else _currentLocation = findLocation(locationName);
-        }
-        else if (in.readInt() == GLOBAL_VAR_VALUE_TOKEN)
-        {
-            String globalName = in.readUTF();
-            Variable global = findGlobal(globalName);
-            if (global != null)
+            int token = in.read();
+            while (token > 0)
             {
-                int varType = in.readInt();
-                if (varType == ScriptObject.SOT_STRING) global.setValue(in.readUTF());
-                else if (varType == ScriptObject.SOT_INTEGER) global.setValue(in.readInt());
-                else if (varType == ScriptObject.SOT_FLOAT) global.setValue(in.readDouble());
-                else global.setNull();
+                if (token == CUR_LOCATION_TOKEN)
+                {
+                    String locationName = in.readUTF();
+                    if(locationName.equals("(null)")) _currentLocation = null;
+                    else _currentLocation = findLocation(locationName);
+                }
+                else if (token == GLOBAL_VAR_VALUE_TOKEN)
+                {
+                    String globalName = in.readUTF();
+                    Variable global = findGlobal(globalName);
+                    if (global != null)
+                    {
+                        int varType = in.read();
+                        if (varType == ScriptObject.SOT_STRING) global.setValue(in.readUTF());
+                        else if (varType == ScriptObject.SOT_INTEGER) global.setValue(in.readInt());
+                        else if (varType == ScriptObject.SOT_FLOAT) global.setValue(in.readDouble());
+                        else global.setNull();
+                    }
+                    else return false;
+                }
+                else return false;
+                
+                token = in.read();
             }
-            else return false;
         }
-        else return false;
+        catch (EOFException ex)
+        {
+            
+        }
         
         return true;
     }

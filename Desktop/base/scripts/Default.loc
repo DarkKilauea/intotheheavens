@@ -1,0 +1,133 @@
+////////////////////////////////////
+// Default locations for the game //
+// Author: Dark_Kilauea           //
+////////////////////////////////////
+
+location "Start"
+{
+	event "OnEnter"
+	{
+		print "You enter the maze and find yourself in a corridor."
+		print ""
+		print "There is a opening to your west."
+	}
+	
+	command "Go"
+	{
+		if ($arg1 == "west")
+		{
+			goto "E4"
+		}
+		else invoke "Go", $arg1;
+	}
+}
+
+location "Exit"
+{
+	event "OnEnter"
+	{
+		print "Congratulations!  You've made it out of the maze."
+		print ""
+		print "The End."
+	}
+	
+	command "Go"
+	{
+		print "You just got out of the maze, why would you ever want back in?"
+	}
+}
+
+location "__DEFAULT__"
+{
+	command "__UNHANDLED__"
+	{
+		print "Sorry, I don't understand you.  Type in 'Help' to get a list of commands."
+	}
+	
+	command "North"
+	{
+		invoke "Go", "north"
+	}
+	
+	command "East"
+	{
+		invoke "Go", "east"
+	}
+	
+	command "West"
+	{
+		invoke "Go", "west"
+	}
+	
+	command "South"
+	{
+		invoke "Go", "south"
+	}
+	
+	command "Say"
+	{
+		rand = invoke "random"
+		
+		if (rand > 0 && rand < 0.25) print "You say '" + $arg1 + "'."
+		else if (rand > 0.25 && rand < 0.5) print "You mutter '" + $arg1 + "'."
+		else if (rand > 0.5 && rand < 0.75) print "You call out '" + $arg1 + "'."
+		else print "You whisper '" + $arg1 + "'."
+	}
+	
+	command "Fight"
+	{
+		rand = invoke "random"
+		
+		if (rand > 0 && rand < 0.33) print "You punch the nearest wall and cry out in pain."
+		else if (rand > 0.33 && rand < 0.66) print "You roar at the top of your lungs.  Nothing happens."
+		else print "You get into your favorite fighting stance and hum 'dun dun dun na na na na na na dun dun dun doo doo doo...'"
+	}
+	
+	command "Look"
+	{
+		print "There really isn't anything to look at."
+	}
+	
+	command "Go"
+	{
+		if ($arg1 == "north")
+		{
+			print "You cannot go north."
+		}
+		else if ($arg1 == "east")
+		{
+			print "You cannot go east."
+		}
+		else if ($arg1 == "south")
+		{
+			print "You cannot go south."
+		}
+		else if ($arg1 == "west")
+		{
+			print "You cannot go west."
+		}
+		else print "I don't understand where you wish to go."
+	}
+	
+	command "Help"
+	{
+		/*if ($arg1)
+		{
+			
+		}
+		else
+		{*/
+			print "===== Commands ====="
+			print "Go <location> - Moves you in that direction in the world if possible."
+			print "Help <command> - Gives details about a specific command."
+			print "Look - Gives you more detail about your location if available."
+			print "Say <statement> - Causes your character to say something."
+			
+			print "===== Alias ====="
+			print "North - Go north"
+			print "East - Go east"
+			print "South - Go south"
+			print "West - Go west"
+		//}
+	}
+}

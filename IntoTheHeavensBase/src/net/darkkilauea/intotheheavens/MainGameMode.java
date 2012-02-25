@@ -4,10 +4,8 @@
  */
 package net.darkkilauea.intotheheavens;
 
-import java.sql.Time;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.Random;
 import net.darkkilauea.intotheheavens.ITHScript.*;
@@ -62,7 +60,7 @@ public class MainGameMode extends GameMode implements IVirtualMachineDelegate
     {
         try
         {
-            String[] splitInput = input.split("\\s");
+            /*String[] splitInput = input.split("\\s");
             List<Variable> args = new ArrayList<Variable>();
             for (int i = 0; i < splitInput.length; i++) 
             {
@@ -81,6 +79,15 @@ public class MainGameMode extends GameMode implements IVirtualMachineDelegate
                 catch (Exception ex) {}
                 
                 args.add(arg);
+            }*/
+            
+            List<Variable> args = new ArrayList<Variable>();
+            
+            if (input.indexOf(" ") == -1) args.add(new Variable("$arg0", input));
+            else
+            {
+                args.add(new Variable("$arg0", input.substring(0, input.indexOf(" "))));
+                args.add(new Variable("$arg1", input.substring(input.indexOf(" ") + 1)));
             }
             
             executeCommandHandler(args.get(0).toString(), args);
