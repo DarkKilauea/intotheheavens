@@ -33,11 +33,12 @@ public enum OpCode
     OP_LOGICAL_AND      (0x14),
     OP_LOGICAL_OR       (0x15),
     OP_LOGICAL_NOT      (0x16),
+    OP_RETURN           (0x17),
     
     //Commands
     OP_PRINT            (0x40),
     OP_GOTO             (0x41),
-    OP_CALL_BASE        (0x42);
+    OP_INVOKE           (0x42);
     
     private final byte _value;
     OpCode(int value)

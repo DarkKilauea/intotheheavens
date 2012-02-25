@@ -174,6 +174,13 @@ public class Closure
         return -1;
     }
     
+    protected boolean isVariable(int pos)
+    {
+        if (pos >= _stackLocals.size()) return false;
+        else if (_stackLocals.get(pos).getName() != null) return true;
+        else return false;
+    }
+    
     @Override
     public String toString()
     {

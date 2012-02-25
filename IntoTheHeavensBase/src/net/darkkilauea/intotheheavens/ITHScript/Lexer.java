@@ -123,7 +123,8 @@ public class Lexer
     public static final int TK_PRINT = TK_KEYWORDS + 10;
     public static final int TK_GOTO = TK_KEYWORDS + 11;
     public static final int TK_EVENT = TK_KEYWORDS + 12;
-    public static final int TK_BASE = TK_KEYWORDS + 13;
+    public static final int TK_INVOKE = TK_KEYWORDS + 13;
+    public static final int TK_RETURN = TK_KEYWORDS + 14;
     
     private Reader _reader = null;
     private char _curCharacter = '\0';
@@ -153,7 +154,8 @@ public class Lexer
         _keywords.put("print", TK_PRINT);
         _keywords.put("goto", TK_GOTO);
         _keywords.put("event", TK_EVENT);
-        _keywords.put("base", TK_BASE);
+        _keywords.put("invoke", TK_INVOKE);
+        _keywords.put("return", TK_RETURN);
         
         next();
     }

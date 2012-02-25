@@ -14,18 +14,18 @@ import java.util.Stack;
  */
 public class VirtualMachine 
 {
-    private List<IVirtualMachineListener> _listeners = new ArrayList<IVirtualMachineListener>();
+    private IVirtualMachineDelegate _delegate = null;
     private List<Variable> _globals = new ArrayList<Variable>();
     private int _stackSize = 64;
-    
-    public boolean registerListener(IVirtualMachineListener listener)
+
+    public IVirtualMachineDelegate getDelegate() 
     {
-        return _listeners.add(listener);
+        return _delegate;
     }
-    
-    public boolean unregisterListener(IVirtualMachineListener listener)
+
+    public void setDelegate(IVirtualMachineDelegate delegate) 
     {
-        return _listeners.remove(listener);
+        _delegate = delegate;
     }
     
     public List<Variable> getGlobals()
@@ -48,8 +48,10 @@ public class VirtualMachine
         _stackSize = stackSize;
     }
     
-    public void executeClosure(Closure closure, List<Variable> args) throws ScriptException
+    public ScriptObject executeClosure(Closure closure, List<Variable> args) throws ScriptException
     {
+        //_delegate.onInvokePrint(closure.toString(true));
+        
         Stack<Integer> _scopes = new Stack<Integer>();
         int currentScope = 0;
         _scopes.push(currentScope);
@@ -148,23 +150,30 @@ public class VirtualMachine
                         stack[currentScope + i._arg0] = new ScriptObject(!IsTruth(stack[currentScope + i._arg1]) ? 1 : 0);
                         break;
                     case OP_PRINT:
-                        for (IVirtualMachineListener listener : _listeners) 
-                        {
-                            listener.onInvokePrint(stack[currentScope + i._arg0].toString());
-                        }
+                        if (_delegate != null) _delegate.onInvokePrint(stack[currentScope + i._arg0].toString());
                         break;
                     case OP_GOTO:
-                        for (IVirtualMachineListener listener : _listeners) 
-                        {
-                            listener.onInvokeGoto(stack[currentScope + i._arg0].toString());
-                        }
+                        if (_delegate != null) _delegate.onInvokeGoto(stack[currentScope + i._arg0].toString());
                         break;
-                    case OP_CALL_BASE:
-                        for (IVirtualMachineListener listener : _listeners) 
+                    case OP_INVOKE:
+                    {
+                        List<Variable> localArgs = new ArrayList<Variable>();
+                        for (int a = 0; a < i._arg1; a++)
                         {
-                            listener.onCallBase(closure.getName(), args);
+                            Variable larg = new Variable("$arg" + a, stack[currentScope + i._arg2 + a]);
+                            localArgs.add(larg);
                         }
+                        
+                        ScriptObject ret = null;
+                        if (_delegate != null) ret = _delegate.onCallHandler(localArgs.get(0).toString(), 
+                                localArgs.get(0).toString().equals(closure.getName()), 
+                                localArgs);
+                        
+                        stack[currentScope + i._arg0] = ret;
+                    }
                         break;
+                    case OP_RETURN:
+                        return i._arg1 > 0 ? stack[currentScope + i._arg0] : new ScriptObject();
                 }
                 current++;
             }
@@ -173,6 +182,8 @@ public class VirtualMachine
         {
             throw new ScriptException(ex.getMessage(), curLine, closure, closure.getLocation());
         }
+        
+        return new ScriptObject();
     }
     
     private int[] jumpToInstruction(Closure closure, int delta, int current, int currentLine)

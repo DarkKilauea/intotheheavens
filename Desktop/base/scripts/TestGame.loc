@@ -19,7 +19,7 @@ location "Start"
 			print "You walk east."
 			goto "East Of Start"
 		}
-		else base;
+		else invoke "Go", $arg1;
 	}
 }
 
@@ -39,7 +39,7 @@ location "East Of Start"
 			print "You walk west."
 			goto "Start"
 		}
-		else base;
+		else invoke "Go", $arg1;
 	}
 }
 
@@ -48,6 +48,26 @@ location "__DEFAULT__"
 	command "__UNHANDLED__"
 	{
 		print "Sorry, the command " + $arg0 + " is not supported."
+	}
+	
+	command "North"
+	{
+		invoke "Go", "north"
+	}
+	
+	command "East"
+	{
+		invoke "Go", "east"
+	}
+	
+	command "West"
+	{
+		invoke "Go", "west"
+	}
+	
+	command "South"
+	{
+		invoke "Go", "south"
 	}
 	
 	command "Go"

@@ -260,8 +260,14 @@ public class LocationFileParser
             case Lexer.TK_GOTO:
                 processGotoStatement(lex);
                 break;
-            case Lexer.TK_BASE:
-                processBaseStatement(lex);
+            case Lexer.TK_RETURN:
+                nextToken(lex);
+                if (!isEndOfStatement(lex))
+                {
+                    processExpression(lex);
+                    _currentClosure.getInstructions().add(new Instruction(OpCode.OP_RETURN, _currentClosure.popTarget(), 1, 0, 0));
+                }
+                else _currentClosure.getInstructions().add(new Instruction(OpCode.OP_RETURN, 0, 0, 0, 0));
                 break;
             case _blockStart:
                 beginScope();
@@ -340,14 +346,6 @@ public class LocationFileParser
         processExpression(lex);
         
         _currentClosure.getInstructions().add(new Instruction(OpCode.OP_GOTO, _currentClosure.popTarget(), 0, 0, 0));
-    }
-    
-    private void processBaseStatement(Lexer lex) throws IOException, CompileException
-    {
-        nextToken(lex);
-        ExpectEndOfStatement(lex);
-        
-        _currentClosure.getInstructions().add(new Instruction(OpCode.OP_CALL_BASE, 0, 0, 0, 0));
     }
     
     private void processCommaExpression(Lexer lex) throws IOException, CompileException
@@ -962,9 +960,45 @@ public class LocationFileParser
                 processCommaExpression(lex);
                 expectToken(lex, ')');
                 break;
-            default:
-                EmitCompileError("Expression Expected.");
+            case Lexer.TK_INVOKE:
+            {
+                _expState.type = ExpressionState.Expression;
+                nextToken(lex);
+
+                int nArgs = 0;
+                while (!isEndOfStatement(lex))
+                {
+                    processExpression(lex);
+
+                    int target = _currentClosure.topTarget();
+                    if (_currentClosure.isVariable(target))
+                    {
+                        target = _currentClosure.popTarget();
+                        _currentClosure.getInstructions().add(new Instruction(OpCode.OP_MOVE, _currentClosure.pushTarget(-1), target, 0, 0));
+                    }
+                    
+                    nArgs++;
+
+                    if (_token.getValue() == ',')
+                    {
+                        nextToken(lex);
+                        if (isEndOfStatement(lex)) EmitCompileError("Expected an expression after comma.");
+                    }
+                    else if (!isEndOfStatement(lex)) EmitCompileError("Expected a comma or end of statement after expression.");
+                }
+
+                int base = 0;
+                for (int i = 0; i < nArgs; i++)
+                {            
+                    base = _currentClosure.popTarget();
+                }
+
+                _currentClosure.getInstructions().add(new Instruction(OpCode.OP_INVOKE, _currentClosure.pushTarget(-1), nArgs, base, 0));
+            }
                 break;
+        default:
+            EmitCompileError("Expression Expected.");
+            break;
         }
         
         return -1;

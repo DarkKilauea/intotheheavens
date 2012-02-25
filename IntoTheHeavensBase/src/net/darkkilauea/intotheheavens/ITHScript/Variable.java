@@ -25,7 +25,7 @@ public final class Variable extends ScriptObject
         setName(name);
     }
     
-    public Variable(String name, float value)
+    public Variable(String name, double value)
     {
         super(value);
         setName(name);
@@ -34,6 +34,12 @@ public final class Variable extends ScriptObject
     public Variable(String name, String value)
     {
         super(value);
+        setName(name);
+    }
+    
+    protected Variable(String name, ScriptObject object)
+    {
+        super(object);
         setName(name);
     }
 

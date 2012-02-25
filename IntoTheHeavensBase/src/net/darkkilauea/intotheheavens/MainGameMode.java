@@ -4,18 +4,23 @@
  */
 package net.darkkilauea.intotheheavens;
 
+import java.sql.Time;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Random;
 import net.darkkilauea.intotheheavens.ITHScript.*;
 
 /**
  *
  * @author joshua
  */
-public class MainGameMode extends GameMode implements IVirtualMachineListener
+public class MainGameMode extends GameMode implements IVirtualMachineDelegate
 {
     private WorldState _world = new WorldState();
     private VirtualMachine _vm = new VirtualMachine();
+    private Random _rand = new Random(Calendar.getInstance().getTimeInMillis());
     
     public MainGameMode()
     {
@@ -27,7 +32,7 @@ public class MainGameMode extends GameMode implements IVirtualMachineListener
     {
         super.initialize(manager);
         
-        _vm.registerListener(this);
+        _vm.setDelegate(this);
         
         return true;
     }
@@ -47,7 +52,7 @@ public class MainGameMode extends GameMode implements IVirtualMachineListener
     @Override
     public void shutdown()
     {
-        _vm.unregisterListener(this);
+        _vm.setDelegate(null);
         
         super.shutdown();
     }
@@ -123,24 +128,24 @@ public class MainGameMode extends GameMode implements IVirtualMachineListener
         return _world;
     }
     
-    private void executeCommandHandler(String name, List<Variable> args) throws ScriptException, Exception
+    private ScriptObject executeCommandHandler(String name, List<Variable> args) throws ScriptException, Exception
     {
         Location curLocation = _world.getCurrentLocation();
         if(curLocation != null)
         {
             Closure handler = curLocation.getCommandHandler(name);
-            if(handler != null) _vm.executeClosure(handler, args);
+            if(handler != null) return _vm.executeClosure(handler, args);
             else
             {
                 Location defaultLoc = _world.findLocation("__DEFAULT__");
                 if (defaultLoc != null)
                 {
                     handler = defaultLoc.getCommandHandler(name);
-                    if(handler != null) _vm.executeClosure(handler, args);
+                    if(handler != null) return _vm.executeClosure(handler, args);
                     else
                     {
                         handler = defaultLoc.getCommandHandler("__UNHANDLED__");
-                        if (handler != null) _vm.executeClosure(handler, args);
+                        if (handler != null) return _vm.executeClosure(handler, args);
                         else throw new Exception("Could not find a handler for command '" + name + "'!");
                     }
                 }
@@ -150,28 +155,30 @@ public class MainGameMode extends GameMode implements IVirtualMachineListener
         else throw new Exception("Cannot execute a command outside of a location!");
     }
     
-    private void executeEventHandler(String name, List<Variable> args) throws ScriptException
+    private ScriptObject executeEventHandler(String name, List<Variable> args) throws ScriptException
     {
         Location curLocation = _world.getCurrentLocation();
         if(curLocation != null)
         {
             Closure handler = curLocation.getEventHandler(name);
-            if(handler != null) _vm.executeClosure(handler, args);
+            if(handler != null) return _vm.executeClosure(handler, args);
             else
             {
                 Location defaultLoc = _world.findLocation("__DEFAULT__");
                 if (defaultLoc != null)
                 {
                     handler = defaultLoc.getEventHandler(name);
-                    if(handler != null) _vm.executeClosure(handler, args);
+                    if(handler != null) return _vm.executeClosure(handler, args);
                     else
                     {
                         handler = defaultLoc.getEventHandler("__UNHANDLED__");
-                        if (handler != null) _vm.executeClosure(handler, args);
+                        if (handler != null) return _vm.executeClosure(handler, args);
                     }
                 }
             }
         }
+        
+        return null;
     }
 
     @Override
@@ -234,18 +241,35 @@ public class MainGameMode extends GameMode implements IVirtualMachineListener
     }
     
     @Override
-    public void onCallBase(String name, List<Variable> args)
+    public ScriptObject onCallHandler(String name, boolean self, List<Variable> args)
     {
         try
         {
-            Location defaultLoc = _world.findLocation("__DEFAULT__");
-            if (defaultLoc != null)
+            if (name.equalsIgnoreCase("Random"))
             {
-                Closure handler = defaultLoc.getEventHandler(name);
-                if(handler != null) _vm.executeClosure(handler, args);
-                
-                handler = defaultLoc.getCommandHandler(name);
-                if(handler != null) _vm.executeClosure(handler, args);
+                return new Variable("NOT_A_VAR", _rand.nextDouble());
+            }
+            else   
+            {
+                if (self)
+                {
+                    Location defaultLoc = _world.findLocation("__DEFAULT__");
+                    if (defaultLoc != null)
+                    {
+                        Closure handler = defaultLoc.getEventHandler(name);
+                        if(handler != null) return _vm.executeClosure(handler, args);
+
+                        handler = defaultLoc.getCommandHandler(name);
+                        if(handler != null) return _vm.executeClosure(handler, args);
+                    }
+                }
+                else
+                {
+                    ScriptObject ret = executeEventHandler(name, args);
+
+                    if (ret == null) return executeCommandHandler(name, args);
+                    else return ret;
+                }
             }
         }
         catch(ScriptException ex)
@@ -256,5 +280,7 @@ public class MainGameMode extends GameMode implements IVirtualMachineListener
         {
             printToAllListeners(ex.toString());
         }
+        
+        return null;
     }
 }
