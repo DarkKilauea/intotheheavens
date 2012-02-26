@@ -4,6 +4,7 @@
  */
 package net.darkkilauea.intotheheavens.ITHScript;
 
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,6 +14,10 @@ import java.util.List;
  */
 public class Closure 
 {
+    private int LITERAL_KEY =       0x00000001;
+    private int GLOBAL_VAR_KEY =    0x00000002;
+    private int INSTRUCTION_KEY =   0x00000003;
+    
     private List<Instruction> _instructions = new ArrayList<Instruction>();
     private List<ScriptObject> _literals = new ArrayList<ScriptObject>();
     private List<Variable> _locals = new ArrayList<Variable>();
@@ -179,6 +184,92 @@ public class Closure
         if (pos >= _stackLocals.size()) return false;
         else if (_stackLocals.get(pos).getName() != null) return true;
         else return false;
+    }
+    
+    public void saveToStream(OutputStream stream) throws IOException
+    {
+        DataOutputStream output = new DataOutputStream(stream);
+        
+        output.writeByte(LITERAL_KEY);
+        output.writeInt(_literals.size());
+        for (ScriptObject literal : _literals) 
+        {
+            literal.saveToStream(output);
+        }
+        
+        output.writeByte(GLOBAL_VAR_KEY);
+        output.writeInt(_globals.size());
+        for (Variable global : _globals) 
+        {
+            global.saveToStream(output);
+        }
+        
+        output.writeByte(INSTRUCTION_KEY);
+        output.writeInt(_instructions.size());
+        for (Instruction instruction : _instructions) 
+        {
+            output.writeByte(instruction._op.value());
+            output.writeInt(instruction._arg0);
+            output.writeInt(instruction._arg1);
+            output.writeInt(instruction._arg2);
+            output.writeInt(instruction._arg3);
+        }
+    }
+    
+    public void loadFromStream(InputStream stream) throws IOException
+    {
+        DataInputStream input = new DataInputStream(stream);
+        
+        try
+        {
+            int token = input.readByte();
+            while (token > 0)
+            {
+                if (token == LITERAL_KEY)
+                {
+                    int count = input.readInt();
+                    for (int i = 0; i < count; i++)
+                    {
+                        ScriptObject obj = new ScriptObject();
+                        obj.loadFromStream(input);
+                        
+                        _literals.add(obj);
+                    }
+                }
+                else if (token == GLOBAL_VAR_KEY)
+                {
+                    int count = input.readInt();
+                    for (int i = 0; i < count; i++)
+                    {
+                        Variable obj = new Variable("");
+                        obj.loadFromStream(input);
+                        
+                        _globals.add(obj);
+                    }
+                }
+                else if (token == INSTRUCTION_KEY)
+                {
+                    int count = input.readInt();
+                    for (int i = 0; i < count; i++)
+                    {
+                        Instruction instruct = new Instruction(OpCode.OP_ERROR, 0, 0, 0, 0);
+                        instruct._op = OpCode.enumForValue(input.readByte());
+                        instruct._arg0 = input.readInt();
+                        instruct._arg1 = input.readInt();
+                        instruct._arg2 = input.readInt();
+                        instruct._arg3 = input.readInt();
+                        
+                        _instructions.add(instruct);
+                    }
+                }
+
+                token = input.readByte();
+            }
+        }
+        catch (EOFException ex)
+        {
+            
+        }
     }
     
     @Override

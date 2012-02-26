@@ -4,6 +4,8 @@
  */
 package net.darkkilauea.intotheheavens.ITHScript;
 
+import java.io.*;
+
 /**
  *
  * @author joshua
@@ -95,6 +97,46 @@ public class ScriptObject
                 return Double.parseDouble(_stringValue);
             default:
                 return 0.0;
+        }
+    }
+    
+    public void saveToStream(OutputStream stream) throws IOException
+    {
+        DataOutputStream output = new DataOutputStream(stream);
+        
+        output.write(_type);
+        
+        switch(_type)
+        {
+            case SOT_INTEGER:
+                output.writeInt(_intValue);
+                break;
+            case SOT_FLOAT:
+                output.writeDouble(_floatValue);
+                break;
+            case SOT_STRING:
+                output.writeUTF(_stringValue);
+                break;
+        }
+    }
+    
+    public void loadFromStream(InputStream stream) throws IOException
+    {
+        DataInputStream input = new DataInputStream(stream);
+        
+        _type = input.read();
+        
+        switch(_type)
+        {
+            case SOT_INTEGER:
+                _intValue = input.readInt();
+                break;
+            case SOT_FLOAT:
+                _floatValue = input.readDouble();
+                break;
+            case SOT_STRING:
+                _stringValue = input.readUTF();
+                break;
         }
     }
     

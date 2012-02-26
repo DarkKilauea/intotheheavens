@@ -47,4 +47,14 @@ public enum OpCode
     }
     
     protected byte value() { return _value; }
+    
+    protected static OpCode enumForValue(byte value)
+    {
+        for (OpCode op : values()) 
+        {
+            if (op.value() == value) return op;
+        }
+        
+        return OP_ERROR;
+    }
 }

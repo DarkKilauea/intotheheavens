@@ -4,6 +4,8 @@
  */
 package net.darkkilauea.intotheheavens.ITHScript;
 
+import java.io.*;
+
 /**
  *
  * @author joshua
@@ -92,7 +94,7 @@ public final class Variable extends ScriptObject
         _floatValue = 0;
     }
     
-    public boolean IsNull()
+    public boolean isNull()
     {
         return _type == ScriptObject.SOT_NULL;
     }
@@ -112,5 +114,23 @@ public final class Variable extends ScriptObject
         other._floatValue = this._floatValue;
         other._intValue = this._intValue;
         other._stringValue = this._stringValue;
+    }
+    
+    @Override
+    public void saveToStream(OutputStream stream) throws IOException
+    {
+        DataOutputStream output = new DataOutputStream(stream);
+        
+        output.writeUTF(_name);
+        super.saveToStream(stream);
+    }
+    
+    @Override
+    public void loadFromStream(InputStream stream) throws IOException
+    {
+        DataInputStream input = new DataInputStream(stream);
+        
+        _name = input.readUTF();
+        super.loadFromStream(stream);
     }
 }

@@ -4,21 +4,10 @@
  */
 package net.darkkilauea.intotheheavens;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.EOFException;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
-import net.darkkilauea.intotheheavens.ITHScript.Closure;
-import net.darkkilauea.intotheheavens.ITHScript.CompileException;
-import net.darkkilauea.intotheheavens.ITHScript.Location;
-import net.darkkilauea.intotheheavens.ITHScript.LocationFileParser;
-import net.darkkilauea.intotheheavens.ITHScript.ScriptObject;
-import net.darkkilauea.intotheheavens.ITHScript.Variable;
+import net.darkkilauea.intotheheavens.ITHScript.*;
 
 /**
  *
@@ -132,11 +121,7 @@ public class WorldState
         for (Variable var : _globals)
         {
             out.write(GLOBAL_VAR_VALUE_TOKEN);
-            out.writeUTF(var.getName());
-            out.write(var.getType());
-            if (var.getType() == ScriptObject.SOT_STRING) out.writeUTF(var.toString());
-            else if (var.getType() == ScriptObject.SOT_INTEGER) out.writeInt(var.toInt());
-            else if (var.getType() == ScriptObject.SOT_FLOAT) out.writeDouble(var.toFloat());
+            var.saveToStream(out);
         }
         
         out.flush();
