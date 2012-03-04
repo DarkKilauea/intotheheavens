@@ -14,9 +14,9 @@ import java.util.List;
  */
 public class Closure 
 {
-    private int LITERAL_KEY =       0x00000001;
-    private int GLOBAL_VAR_KEY =    0x00000002;
-    private int INSTRUCTION_KEY =   0x00000003;
+    private static final int LITERALS_STREAM =      0x00000001;
+    private static final int GLOBAL_VAR_STREAM =    0x00000002;
+    private static final int INSTRUCTION_STREAM =   0x00000003;
     
     private List<Instruction> _instructions = new ArrayList<Instruction>();
     private List<ScriptObject> _literals = new ArrayList<ScriptObject>();
@@ -190,21 +190,23 @@ public class Closure
     {
         DataOutputStream output = new DataOutputStream(stream);
         
-        output.writeByte(LITERAL_KEY);
+        output.writeUTF(_name);
+        
+        output.writeByte(LITERALS_STREAM);
         output.writeInt(_literals.size());
         for (ScriptObject literal : _literals) 
         {
             literal.saveToStream(output);
         }
         
-        output.writeByte(GLOBAL_VAR_KEY);
+        output.writeByte(GLOBAL_VAR_STREAM);
         output.writeInt(_globals.size());
         for (Variable global : _globals) 
         {
             global.saveToStream(output);
         }
         
-        output.writeByte(INSTRUCTION_KEY);
+        output.writeByte(INSTRUCTION_STREAM);
         output.writeInt(_instructions.size());
         for (Instruction instruction : _instructions) 
         {
@@ -216,60 +218,57 @@ public class Closure
         }
     }
     
-    public void loadFromStream(InputStream stream) throws IOException
+    public void loadFromStream(InputStream stream) throws IOException, Exception
     {
         DataInputStream input = new DataInputStream(stream);
         
-        try
+        _name = input.readUTF();
+        
+        int token = input.readByte();
+        if (token == LITERALS_STREAM)
         {
-            int token = input.readByte();
-            while (token > 0)
+            int count = input.readInt();
+            for (int i = 0; i< count; i++)
             {
-                if (token == LITERAL_KEY)
-                {
-                    int count = input.readInt();
-                    for (int i = 0; i < count; i++)
-                    {
-                        ScriptObject obj = new ScriptObject();
-                        obj.loadFromStream(input);
-                        
-                        _literals.add(obj);
-                    }
-                }
-                else if (token == GLOBAL_VAR_KEY)
-                {
-                    int count = input.readInt();
-                    for (int i = 0; i < count; i++)
-                    {
-                        Variable obj = new Variable("");
-                        obj.loadFromStream(input);
-                        
-                        _globals.add(obj);
-                    }
-                }
-                else if (token == INSTRUCTION_KEY)
-                {
-                    int count = input.readInt();
-                    for (int i = 0; i < count; i++)
-                    {
-                        Instruction instruct = new Instruction(OpCode.OP_ERROR, 0, 0, 0, 0);
-                        instruct._op = OpCode.enumForValue(input.readByte());
-                        instruct._arg0 = input.readInt();
-                        instruct._arg1 = input.readInt();
-                        instruct._arg2 = input.readInt();
-                        instruct._arg3 = input.readInt();
-                        
-                        _instructions.add(instruct);
-                    }
-                }
+                ScriptObject obj = new ScriptObject();
+                obj.loadFromStream(input);
 
-                token = input.readByte();
+                _literals.add(obj);
             }
         }
-        catch (EOFException ex)
+        else throw new Exception("Expected Literals Stream!");
+
+        token = input.readByte();
+        if (token == GLOBAL_VAR_STREAM)
         {
-            
+            int count = input.readInt();
+            for (int i = 0; i< count; i++)
+            {
+                Variable obj = new Variable("");
+                obj.loadFromStream(input);
+
+                _globals.add(obj);
+            }
         }
+        else throw new Exception("Expected Global Variable Stream!");
+
+        token = input.readByte();
+        if (token == INSTRUCTION_STREAM)
+        {
+            int count = input.readInt();
+            for (int i = 0; i< count; i++)
+            {
+                Instruction instruct = new Instruction(OpCode.OP_ERROR, 0, 0, 0, 0);
+                instruct._op = OpCode.enumForValue(input.readByte());
+                instruct._arg0 = input.readInt();
+                instruct._arg1 = input.readInt();
+                instruct._arg2 = input.readInt();
+                instruct._arg3 = input.readInt();
+
+                _instructions.add(instruct);
+            }
+        }
+        else throw new Exception("Expected Instruction Stream!");
     }
     
     @Override

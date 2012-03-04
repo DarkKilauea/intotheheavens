@@ -5,6 +5,7 @@
 package net.darkkilauea.intotheheavens.ITHScript;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -19,7 +20,7 @@ import net.darkkilauea.intotheheavens.ITHScript.Lexer.Token;
 public class LocationFileParser 
 {
     private Token _token = null;
-    private String _currentFile = null;
+    private File _currentFile = null;
     private Location _currentLocation = null;
     private Closure _currentClosure = null;
     
@@ -60,9 +61,9 @@ public class LocationFileParser
         return _locations;
     }
     
-    public LocationFileParser(String filename)
+    public LocationFileParser(File file)
     {
-        _currentFile = filename;
+        _currentFile = file;
     }
     
     private boolean isEndOfStatement(Lexer lex)
@@ -72,7 +73,7 @@ public class LocationFileParser
     
     private void EmitCompileError(String message) throws CompileException
     {
-        throw new CompileException(message, _currentFile, _token.getLineNumber(), _token.getColumnNumber());
+        throw new CompileException(message, _currentFile.getAbsolutePath(), _token.getLineNumber(), _token.getColumnNumber());
     }
     
     public void parseFile() throws CompileException, IOException

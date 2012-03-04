@@ -6,7 +6,11 @@ package net.darkkilauea.intotheheavens;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 import net.darkkilauea.intotheheavens.ITHScript.*;
 
 /**
@@ -15,11 +19,13 @@ import net.darkkilauea.intotheheavens.ITHScript.*;
  */
 public class WorldState 
 {
-    private static int CUR_LOCATION_TOKEN = 0x00000001;
-    private static int GLOBAL_VAR_VALUE_TOKEN = 0x00000010;
+    private static final int CUR_LOCATION_STREAM = 0x00000001;
+    private static final int GLOBAL_VAR_VALUE_STREAM = 0x00000010;
     
-    private List<Location> _locations = new ArrayList<Location>();
-    private List<Variable> _globals = new ArrayList<Variable>();
+    private static final int LOCATION_STREAM = 0x00000001;
+    
+    private Map<String, Location> _locations = new HashMap<String, Location>();
+    private Map<String, Variable> _globals = new HashMap<String, Variable>();
     protected Location _currentLocation = null;
 
     /**
@@ -29,12 +35,12 @@ public class WorldState
      */
     public List<Location> getLocations() 
     {
-        return _locations;
+        return new ArrayList<Location>(_locations.values());
     }
     
     public List<Variable> getGlobals()
     {
-        return _globals;
+        return new ArrayList<Variable>(_globals.values());
     }
     
     /**
@@ -59,68 +65,117 @@ public class WorldState
     
     public Location findLocation(String name) 
     {
-        for(Location loc : _locations)
-        {
-            if(loc.getName().equals(name))
-            {
-                return loc;
-            }
-        }
-        
-        return null;
+        return _locations.get(name);
     }
     
     public Variable findGlobal(String name)
     {
-        for(Variable var : _globals)
+        return _globals.get(name);
+    }
+    
+    public void loadLocations(File locationDir) throws CompileException, IOException, Exception
+    {
+        //Load Archives first
+        for(File file : locationDir.listFiles())
         {
-            if(var.getName().equals(name))
+            if(file.isFile() && file.getName().endsWith(".arc"))
             {
-                return var;
+                loadLocationArchive(file);
             }
         }
         
-        return null;
-    }
-    
-    public void loadLocations(String locationDir) throws CompileException, IOException
-    {
-        File gameDataRoot = new File(locationDir);
-        for(File file : gameDataRoot.listFiles())
+        //Then load any text file locations, which will override archived locations
+        for(File file : locationDir.listFiles())
         {
             if(file.isFile() && file.getName().endsWith(".loc"))
             {
-                LocationFileParser parser = new LocationFileParser(file.getPath());
-                parser.parseFile();
-                _locations.addAll(parser.getLocations());
+                loadLocationFile(file);
             }
         }
         
         //Locate all of our globals
-        for (Location location : _locations) 
+        for (Location location : _locations.values()) 
         {
             for (Closure closure : location.getEventHandlers()) 
             {
-                gatherGlobalsFromClosure(closure);
+                for (Variable local : closure.getGlobals())
+                {
+                    _globals.put(local.getName(), local);
+                }
             }
 
             for (Closure closure : location.getCommandHandlers()) 
             {
-                gatherGlobalsFromClosure(closure);
+                for (Variable local : closure.getGlobals())
+                {
+                    _globals.put(local.getName(), local);
+                }
             }
         }
+    }
+    
+    public void loadLocationArchive(File file) throws IOException, Exception
+    {
+        FileInputStream stream = new FileInputStream(file);
+        GZIPInputStream compress = new GZIPInputStream(stream);
+        DataInputStream input = new DataInputStream(compress);
+                    
+        int token = input.readByte();
+        if (token == LOCATION_STREAM)
+        {
+            int count = input.readInt();
+            for (int i = 0; i < count; i++)
+            {
+                Location location = new Location(null);
+                location.loadFromStream(input);
+
+                _locations.put(location.getName(), location);
+            }
+        }
+        else throw new Exception("Expected Location Stream!");
+
+        stream.close();
+    }
+    
+    public void loadLocationFile(File file) throws CompileException, IOException
+    {
+        LocationFileParser parser = new LocationFileParser(file);
+        parser.parseFile();
+        
+        for (Location location : parser.getLocations())
+        {
+            _locations.put(location.getName(), location);
+        }
+    }
+    
+    public void archiveLocations(OutputStream stream) throws IOException
+    {
+        GZIPOutputStream compress = new GZIPOutputStream(stream);
+        DataOutputStream output = new DataOutputStream(compress);
+        
+        output.write(LOCATION_STREAM);
+        output.writeInt(_locations.size());
+        for (Location location : _locations.values()) 
+        {
+            location.saveToStream(output);
+        }
+        
+        output.flush();
+        compress.finish();
     }
     
     public void saveState(OutputStream stream) throws IOException
     {
         DataOutputStream out = new DataOutputStream(stream);
         
-        out.write(CUR_LOCATION_TOKEN);
+        out.write(CUR_LOCATION_STREAM);
+        out.writeInt(1);
         out.writeUTF(_currentLocation != null ? _currentLocation.getName() : "(null)");
         
-        for (Variable var : _globals)
+        out.write(GLOBAL_VAR_VALUE_STREAM);
+        out.writeInt(_globals.size());
+        for (Variable var : _globals.values())
         {
-            out.write(GLOBAL_VAR_VALUE_TOKEN);
             var.saveToStream(out);
         }
         
@@ -133,16 +188,24 @@ public class WorldState
         
         try
         {
-            int token = in.read();
-            while (token > 0)
+            int token = in.readByte();
+            if (token == CUR_LOCATION_STREAM)
             {
-                if (token == CUR_LOCATION_TOKEN)
+                int count = in.readInt();
+                for (int i = 0; i< count; i++)
                 {
                     String locationName = in.readUTF();
                     if(locationName.equals("(null)")) _currentLocation = null;
                     else _currentLocation = findLocation(locationName);
                 }
-                else if (token == GLOBAL_VAR_VALUE_TOKEN)
+            }
+            else throw new Exception("Expected Current Location Stream!");
+            
+            token = in.readByte();
+            if (token == GLOBAL_VAR_VALUE_STREAM)
+            {
+                int count = in.readInt();
+                for (int i = 0; i< count; i++)
                 {
                     String globalName = in.readUTF();
                     Variable global = findGlobal(globalName);
@@ -154,39 +217,16 @@ public class WorldState
                         else if (varType == ScriptObject.SOT_FLOAT) global.setValue(in.readDouble());
                         else global.setNull();
                     }
-                    else return false;
+                    else throw new Exception("Could not find variable in save file!");
                 }
-                else return false;
-                
-                token = in.read();
             }
+            else throw new Exception("Expected Global Variable Value Stream!");
         }
-        catch (EOFException ex)
+        catch (Exception ex)
         {
-            
+            return false;
         }
         
         return true;
-    }
-    
-    private void gatherGlobalsFromClosure(Closure closure)
-    {
-        for (Variable local : closure.getGlobals())
-        {
-            boolean exists = false;
-            for (Variable global : _globals) 
-            {
-                if (global.getName().equals(local.getName()))
-                {
-                    exists = true;
-                    break;
-                }
-            }
-
-            if (!exists)
-            {
-                _globals.add(local);
-            }
-        }
     }
 }

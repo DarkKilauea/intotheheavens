@@ -36,7 +36,7 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
     private MainGameMode _mainMode = null;
     private String _contentDir = null;
     private String _saveGameDir = null;
-    private String _scriptDir = null;
+    private String _locationDir = null;
     
     public IntoTheHeavensDesktopView(SingleFrameApplication app) 
     {
@@ -62,7 +62,7 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
         
         
         _saveGameDir = userHomeDir + File.separator + ".intotheheavens" + File.separator + "savegames" + File.separator;
-        _scriptDir = _contentDir + File.separator + "scripts" + File.separator;
+        _locationDir = _contentDir + File.separator + "locations" + File.separator;
         
         new File(_saveGameDir).mkdirs();
         
@@ -73,6 +73,7 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
         
         consoleTextArea.setText(this.getResourceMap().getString("welcomeMessage") + "\n");
         saveGameMenuItem.setEnabled(false);
+        archiveMenuItem.setEnabled(false);
     }
     
     private void setupStatusBar()
@@ -164,6 +165,8 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
         saveGameMenuItem = new javax.swing.JMenuItem();
         jSeparator1 = new javax.swing.JPopupMenu.Separator();
         exitMenuItem = new javax.swing.JMenuItem();
+        toolsMenu = new javax.swing.JMenu();
+        archiveMenuItem = new javax.swing.JMenuItem();
         javax.swing.JMenu helpMenu = new javax.swing.JMenu();
         javax.swing.JMenuItem aboutMenuItem = new javax.swing.JMenuItem();
         statusPanel = new javax.swing.JPanel();
@@ -217,10 +220,12 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
         fileMenu.add(newGameMenuItem);
 
         loadGameMenuItem.setAction(actionMap.get("loadGameAction")); // NOI18N
+        loadGameMenuItem.setText(resourceMap.getString("loadGameMenuItem.text")); // NOI18N
         loadGameMenuItem.setName("loadGameMenuItem"); // NOI18N
         fileMenu.add(loadGameMenuItem);
 
         saveGameMenuItem.setAction(actionMap.get("saveGameAction")); // NOI18N
+        saveGameMenuItem.setText(resourceMap.getString("saveGameMenuItem.text")); // NOI18N
         saveGameMenuItem.setName("saveGameMenuItem"); // NOI18N
         fileMenu.add(saveGameMenuItem);
         fileMenu.add(jSeparator1);
@@ -230,6 +235,16 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
         fileMenu.add(exitMenuItem);
 
         menuBar.add(fileMenu);
+
+        toolsMenu.setText(resourceMap.getString("toolsMenu.text")); // NOI18N
+        toolsMenu.setName("toolsMenu"); // NOI18N
+
+        archiveMenuItem.setAction(actionMap.get("archiveScripts")); // NOI18N
+        archiveMenuItem.setText(resourceMap.getString("archiveMenuItem.text")); // NOI18N
+        archiveMenuItem.setName("archiveMenuItem"); // NOI18N
+        toolsMenu.add(archiveMenuItem);
+
+        menuBar.add(toolsMenu);
 
         helpMenu.setText(resourceMap.getString("helpMenu.text")); // NOI18N
         helpMenu.setName("helpMenu"); // NOI18N
@@ -283,11 +298,12 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
     }// </editor-fold>//GEN-END:initComponents
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JMenuItem archiveMenuItem;
     private javax.swing.JTextField commandTextField;
     private javax.swing.JTextArea consoleTextArea;
     private javax.swing.JMenuItem exitMenuItem;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JSeparator jSeparator1;
+    private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JMenuItem loadGameMenuItem;
     private javax.swing.JPanel mainPanel;
     private javax.swing.JMenuBar menuBar;
@@ -297,6 +313,7 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
     private javax.swing.JLabel statusAnimationLabel;
     private javax.swing.JLabel statusMessageLabel;
     private javax.swing.JPanel statusPanel;
+    private javax.swing.JMenu toolsMenu;
     // End of variables declaration//GEN-END:variables
 
     private Timer messageTimer;
@@ -340,7 +357,7 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
         try
         {
             WorldState world = new WorldState();
-            world.loadLocations(_scriptDir);
+            world.loadLocations(new File(_locationDir));
             
             Location startLocation = world.findLocation("Start");
             if(startLocation != null) world.setCurrentLocation(startLocation);
@@ -353,6 +370,7 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
             
             _manager.setActiveMode("Main");
             saveGameMenuItem.setEnabled(true);
+            archiveMenuItem.setEnabled(true);
         }
         catch (Exception ex)
         {
@@ -377,7 +395,7 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
             try
             {
                 WorldState world = new WorldState();
-                world.loadLocations(_scriptDir);
+                world.loadLocations(new File(_locationDir));
 
                 FileInputStream stream = new FileInputStream(loadFile);
                 if(world.loadState(stream))
@@ -389,6 +407,7 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
 
                     _manager.setActiveMode("Main");
                     saveGameMenuItem.setEnabled(true);
+                    archiveMenuItem.setEnabled(true);
                 }
                 else throw new Exception("Could not parse save file (Not a proper save or corrupted)");
                 
@@ -479,5 +498,56 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
         });
         
         return dialog;
+    }
+
+    @Action
+    public void archiveScripts() 
+    {
+        JFrame mainFrame = IntoTheHeavensDesktopApp.getApplication().getMainFrame();
+        JFileChooser dialog = new JFileChooser(new File(_locationDir).getAbsolutePath());
+        dialog.setAcceptAllFileFilterUsed(false);
+        dialog.setMultiSelectionEnabled(false);
+        dialog.setFileFilter(new FileFilter() {
+
+            @Override
+            public boolean accept(File f) 
+            {
+                if(f.isDirectory() && !f.isHidden()) return true;
+                else if(f.getName().endsWith(".arc"))
+                {
+                    return true;
+                }
+                else return false;
+            }
+
+            @Override
+            public String getDescription() 
+            {
+                return "Archived Location Files (.arc)";
+            }
+        });
+        
+        if(dialog.showSaveDialog(mainFrame) == JFileChooser.APPROVE_OPTION)
+        {
+            File archiveFile = dialog.getSelectedFile();
+            if(!archiveFile.getName().endsWith(".arc"))
+            {
+                archiveFile = new File(archiveFile.getPath() + ".arc");
+            }
+            
+            try 
+            {
+                FileOutputStream stream = new FileOutputStream(archiveFile);
+                
+                MainGameMode mode = (MainGameMode)_manager.getMode("Main");
+                mode.getWorldState().archiveLocations(stream);
+                
+                stream.close();
+            } 
+            catch (Exception ex)
+            {
+                onTextOutput("Failed to archive locations! \nException caught: " + ex.toString());
+            }
+        }
     }
 }

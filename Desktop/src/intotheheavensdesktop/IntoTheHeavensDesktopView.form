@@ -92,6 +92,7 @@
                 <Property name="action" type="javax.swing.Action" editor="org.netbeans.modules.swingapp.ActionEditor">
                   <action class="intotheheavensdesktop.IntoTheHeavensDesktopView" id="loadGameAction" methodName="loadGameAction"/>
                 </Property>
+                <Property name="text" type="java.lang.String" resourceKey="loadGameMenuItem.text"/>
                 <Property name="name" type="java.lang.String" value="loadGameMenuItem" noResource="true"/>
               </Properties>
             </MenuItem>
@@ -100,6 +101,7 @@
                 <Property name="action" type="javax.swing.Action" editor="org.netbeans.modules.swingapp.ActionEditor">
                   <action class="intotheheavensdesktop.IntoTheHeavensDesktopView" id="saveGameAction" methodName="saveGameAction"/>
                 </Property>
+                <Property name="text" type="java.lang.String" resourceKey="saveGameMenuItem.text"/>
                 <Property name="name" type="java.lang.String" value="saveGameMenuItem" noResource="true"/>
               </Properties>
             </MenuItem>
@@ -111,6 +113,23 @@
                   <action class="org.jdesktop.application.Application" id="quit" methodName="quit"/>
                 </Property>
                 <Property name="name" type="java.lang.String" value="exitMenuItem" noResource="true"/>
+              </Properties>
+            </MenuItem>
+          </SubComponents>
+        </Menu>
+        <Menu class="javax.swing.JMenu" name="toolsMenu">
+          <Properties>
+            <Property name="text" type="java.lang.String" resourceKey="toolsMenu.text"/>
+            <Property name="name" type="java.lang.String" value="toolsMenu" noResource="true"/>
+          </Properties>
+          <SubComponents>
+            <MenuItem class="javax.swing.JMenuItem" name="archiveMenuItem">
+              <Properties>
+                <Property name="action" type="javax.swing.Action" editor="org.netbeans.modules.swingapp.ActionEditor">
+                  <action class="intotheheavensdesktop.IntoTheHeavensDesktopView" id="archiveScripts" methodName="archiveScripts"/>
+                </Property>
+                <Property name="text" type="java.lang.String" resourceKey="archiveMenuItem.text"/>
+                <Property name="name" type="java.lang.String" value="archiveMenuItem" noResource="true"/>
               </Properties>
             </MenuItem>
           </SubComponents>
