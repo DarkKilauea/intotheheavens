@@ -92,31 +92,10 @@ public class WorldState
                 loadLocationFile(file);
             }
         }
-        
-        //Locate all of our globals
-        for (Location location : _locations.values()) 
-        {
-            for (Closure closure : location.getEventHandlers()) 
-            {
-                for (Variable local : closure.getGlobals())
-                {
-                    _globals.put(local.getName(), local);
-                }
-            }
-
-            for (Closure closure : location.getCommandHandlers()) 
-            {
-                for (Variable local : closure.getGlobals())
-                {
-                    _globals.put(local.getName(), local);
-                }
-            }
-        }
     }
     
-    public void loadLocationArchive(File file) throws IOException, Exception
+    public void loadLocationArchive(InputStream stream) throws IOException, Exception
     {
-        FileInputStream stream = new FileInputStream(file);
         GZIPInputStream compress = new GZIPInputStream(stream);
         DataInputStream input = new DataInputStream(compress);
                     
@@ -130,10 +109,16 @@ public class WorldState
                 location.loadFromStream(input);
 
                 _locations.put(location.getName(), location);
+                gatherGlobals(location);
             }
         }
         else throw new Exception("Expected Location Stream!");
-
+    }
+    
+    public void loadLocationArchive(File file) throws IOException, Exception
+    {
+        FileInputStream stream = new FileInputStream(file);
+        loadLocationArchive(stream);
         stream.close();
     }
     
@@ -145,6 +130,27 @@ public class WorldState
         for (Location location : parser.getLocations())
         {
             _locations.put(location.getName(), location);
+            gatherGlobals(location);
+        }
+    }
+    
+    protected void gatherGlobals(Location location)
+    {
+        //Locate all of our globals
+        for (Closure closure : location.getEventHandlers()) 
+        {
+            for (Variable local : closure.getGlobals())
+            {
+                _globals.put(local.getName(), local);
+            }
+        }
+
+        for (Closure closure : location.getCommandHandlers()) 
+        {
+            for (Variable local : closure.getGlobals())
+            {
+                _globals.put(local.getName(), local);
+            }
         }
     }
     

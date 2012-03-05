@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Into the Heavens</string>
+    <string name="new_game">New Game</string>
+    <string name="load_game">Load Game</string>
+    <string name="save_game">Save Game</string>
+    <string name="help">Help</string>
+    <string name="welcomeMessage">Welcome to Into The Heavens For Android v0.6!\n\nTo start a new game, tap on your menu key and then tap on New Game.\nTo load an existing play-through, tap on your menu key and then tap on Load Game.</string>
+</resources>
