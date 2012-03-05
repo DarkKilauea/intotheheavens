@@ -1,7 +1,12 @@
 package net.darkkilauea.intotheheavens.android;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.os.Bundle;
+import android.text.Editable;
 import android.text.method.ScrollingMovementMethod;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -9,10 +14,18 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AutoCompleteTextView;
+import android.widget.EditText;
 import android.widget.TextView;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FilenameFilter;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import net.darkkilauea.intotheheavens.GameMode.State;
 import net.darkkilauea.intotheheavens.GameModeManager;
 import net.darkkilauea.intotheheavens.IGameModeListener;
@@ -247,14 +260,21 @@ public class MainActivity extends Activity implements View.OnKeyListener, IGameM
             consoleView.scrollTo(0,0);
     }
     
+    protected WorldState initializeWorld() throws IOException, Exception
+    {
+        WorldState world = new WorldState();
+        InputStream inStream = this.getResources().openRawResource(R.raw.game01);
+        world.loadLocationArchive(inStream);
+        inStream.close();
+        
+        return world;
+    }
+    
     protected void newGame()
     {
         try
         {
-            WorldState world = new WorldState();
-            InputStream inStream = this.getResources().openRawResource(R.raw.game01);
-            world.loadLocationArchive(inStream);
-            inStream.close();
+            WorldState world = initializeWorld();
             
             Location startLocation = world.findLocation("Start");
             if(startLocation != null) world.setCurrentLocation(startLocation);
@@ -276,12 +296,129 @@ public class MainActivity extends Activity implements View.OnKeyListener, IGameM
     
     protected void loadGame()
     {
-        //TODO: Load list of saved games
+        final File saveDir = this.getDir("savegames", MODE_PRIVATE);
+        final String[] saveGameList = saveDir.list(new FilenameFilter() 
+        {
+            public boolean accept(File dir, String filename) 
+            {
+                if (filename.endsWith(".sav")) return true;
+                else return false;
+            }
+        });
         
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.load_game);
+        builder.setItems(saveGameList, new OnClickListener() 
+        {
+            public void onClick(DialogInterface dialog, int item) 
+            {
+                loadGame(saveDir.getPath() + File.separator + saveGameList[item]);
+            }
+        });
+        
+        builder.show();
+    }
+    
+    protected void loadGame(String filename)
+    {
+        try 
+        {
+            WorldState world = initializeWorld();
+
+            FileInputStream stream = new FileInputStream(filename);
+            if(world.loadState(stream))
+            {
+                onClearOutput();
+
+                MainGameMode mode = (MainGameMode)_manager.getMode("Main");
+                mode.loadFromWorldState(world);
+
+                _manager.setActiveMode("Main");
+                _saveGameActive = true;
+            }
+            else throw new Exception("Could not parse save file (Not a proper save or corrupted)");
+
+            stream.close();
+        }
+        catch (Exception ex)
+        {
+            onTextOutput("Failed to load game! \nException caught: " + ex.toString());
+        }
     }
     
     protected void saveGame()
     {
+        final File saveDir = this.getDir("savegames", MODE_PRIVATE);
+        final String[] saveGameList = saveDir.list(new FilenameFilter() 
+        {
+            public boolean accept(File dir, String filename) 
+            {
+                if (filename.endsWith(".sav")) return true;
+                else return false;
+            }
+        });
         
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.save_game);
+        
+        final EditText editBox = new EditText(this);
+        builder.setView(editBox);
+        
+        builder.setItems(saveGameList, new OnClickListener() 
+        {
+            public void onClick(DialogInterface dialog, int item) 
+            {
+                String outPath = saveDir.getPath() + File.separator + saveGameList[item];
+                if (!outPath.endsWith(".sav")) 
+                {
+                    outPath = outPath + ".sav";
+                }
+                
+                saveGame(outPath);
+                dialog.dismiss();
+            }
+        });
+        
+        builder.setPositiveButton("Save", new OnClickListener() 
+        {
+            public void onClick(DialogInterface arg0, int arg1) 
+            {
+                String outPath = saveDir.getPath() + File.separator + editBox.getText().toString();
+                if (!outPath.endsWith(".sav")) 
+                {
+                    outPath = outPath + ".sav";
+                }
+                
+                saveGame(outPath);
+                arg0.dismiss();
+            }
+        });
+        
+        builder.setNegativeButton("Cancel", new OnClickListener() 
+        {
+            public void onClick(DialogInterface arg0, int arg1) 
+            {
+                arg0.cancel();
+            }
+        });
+        
+        builder.show();
+    }
+    
+    protected void saveGame(String filename)
+    {
+        try 
+        {
+            FileOutputStream stream = new FileOutputStream(filename);
+
+            MainGameMode mode = (MainGameMode)_manager.getMode("Main");
+            mode.getWorldState().saveState(stream);
+
+            stream.close();
+        } 
+        catch (Exception ex)
+        {
+            onTextOutput("Failed to save game! \nException caught: " + ex.toString());
+        }
     }
 }
