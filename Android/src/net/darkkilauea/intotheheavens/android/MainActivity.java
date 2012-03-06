@@ -249,6 +249,14 @@ public class MainActivity extends Activity implements View.OnKeyListener, IGameM
         autoScrollConsole();
     }
     
+    public void onLocationChange()
+    {
+        final File saveDir = this.getDir("savegames", MODE_PRIVATE);
+        String saveFile = saveDir.getAbsolutePath() + File.separator + "autosave.sav";
+        
+        saveGame(saveFile);
+    }
+    
     protected void autoScrollConsole()
     {
         TextView consoleView = (TextView)findViewById(R.id.console_textView);

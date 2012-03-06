@@ -233,6 +233,11 @@ public class MainGameMode extends GameMode implements IVirtualMachineDelegate
                 args.add(new Variable("$arg1", oldLocationName));
                 
                 _world.setCurrentLocation(newLocation);
+                for(IGameModeListener listener : _listeners)
+                {
+                    listener.onLocationChange();
+                }
+                
                 executeEventHandler("OnEnter", args);
             }
             else throw new ScriptException("Location \"" + locationName + "\" could not be found.");

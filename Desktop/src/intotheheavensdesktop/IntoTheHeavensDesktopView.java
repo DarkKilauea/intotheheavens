@@ -338,6 +338,24 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
     {
         consoleTextArea.setText("");
     }
+    
+    public void onLocationChange()
+    {
+        String saveFile = new File(_saveGameDir).getAbsolutePath() + File.separator + "autosave.sav";
+        try 
+        {
+            FileOutputStream stream = new FileOutputStream(saveFile);
+
+            MainGameMode mode = (MainGameMode)_manager.getMode("Main");
+            mode.getWorldState().saveState(stream);
+
+            stream.close();
+        } 
+        catch (Exception ex)
+        {
+            onTextOutput("Failed to auto save game! \nException caught: " + ex.toString());
+        }
+    }
 
     @Action
     public void showAboutBox() 

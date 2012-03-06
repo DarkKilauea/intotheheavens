@@ -11,6 +11,7 @@ package net.darkkilauea.intotheheavens;
 public interface IGameModeListener 
 {
     public void onStateChange(GameMode.State state);
+    public void onLocationChange();
     public void onTextOutput(String output);
     public void onClearOutput();
 }
