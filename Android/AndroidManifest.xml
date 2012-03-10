@@ -20,5 +20,9 @@
                   android:label="@string/save_game"
                   android:windowSoftInputMode="adjustResize"
                   />
+        <activity android:name="HelpActivity" 
+                  android:label="@string/help" 
+                  />
+                  
     </application>
 </manifest> 

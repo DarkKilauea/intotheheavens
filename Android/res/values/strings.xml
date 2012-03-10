@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Into the Heavens</string>
+    <string name="app_version">0.6</string>
+    <string name="app_vender">Bishop</string>
+    <string name="app_website">www.darkkilauea.net</string>
     <string name="new_game">New Game</string>
     <string name="load_game">Load Game</string>
     <string name="save_game">Save Game</string>
-    <string name="no_saves">No Saved Games.</string>
+    <string name="no_saves">No Saved Games Detected.</string>
     <string name="save">Save</string>
     <string name="help">Help</string>
     <string name="welcomeMessage">Welcome to Into The Heavens For Android v0.6!\n\nTo start a new game, tap on your menu key and then tap on New Game.\nTo load an existing play-through, tap on your menu key and then tap on Load Game.\n</string>
@@ -13,4 +16,28 @@
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="today">Today</string>
+    <string name="last_played">Last Played:</string>
+    <string name="help_html">&lt;html&gt;
+	&lt;head&gt;
+		&lt;style type=&quot;text/css&quot;&gt;
+			body { background-color:black; color:#cccccc; font-size:0.8125em; }
+			p { text-indent:2em; }
+                        h1 { color:lightgray; }
+                        h2 { color:lightgray; }
+                        h3 { color:lightgray; }
+		&lt;/style&gt;
+	&lt;/head&gt;
+	&lt;body&gt;
+		&lt;h1&gt;{{app_name}}&lt;/h1&gt;
+		Version: {{app_version}}&lt;br/&gt;
+		Company: {{app_vender}}&lt;br/&gt;
+		Website: {{app_website}}&lt;br/&gt;
+		&lt;br/&gt;
+		&lt;hr/&gt;
+		&lt;h2&gt;How To Play: &lt;/h2&gt;
+		&lt;p&gt;Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec hendrerit ligula ac sapien posuere aliquam. Nunc a orci est. Duis volutpat orci accumsan justo luctus vel tincidunt justo pellentesque. Integer vehicula, lacus vitae dapibus laoreet, dolor sem placerat enim, quis vulputate ligula metus tempus leo. Nunc dignissim ullamcorper mattis. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Curabitur sagittis adipiscing libero, ut commodo felis rhoncus ultricies.&lt;/p&gt;
+
+		&lt;p&gt;Etiam bibendum semper urna quis egestas. Nullam dignissim, nisi eget dictum pretium, lacus nisi pretium urna, id malesuada sapien mauris et sapien. Donec consectetur ligula sit amet est egestas ullamcorper. Proin vel libero urna, eu ornare tellus. Pellentesque ullamcorper sem id orci consectetur bibendum. Mauris ullamcorper, tortor vestibulum bibendum ultrices, nibh mauris posuere orci, ac mattis tellus nunc sed ligula. Quisque nec ante urna. Integer non felis sem. Vestibulum non metus mauris. Aenean nisi turpis, consequat non pulvinar at, ullamcorper sit amet justo. Pellentesque eget elit mi, eu suscipit metus. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.&lt;/p&gt;
+	&lt;/body&gt;
+&lt;/html&gt;</string>
 </resources>

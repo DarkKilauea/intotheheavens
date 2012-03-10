@@ -50,8 +50,11 @@ public class LoadGameActivity extends ListActivity
         {
             HashMap pair = new HashMap();
             pair.put("title", file.getName().replace(".sav", ""));
-            pair.put("subtitle", (DateUtils.isToday(file.lastModified()) ? getResources().getString(R.string.today) :  DateUtils.formatDateTime(this, file.lastModified(), DateUtils.FORMAT_SHOW_WEEKDAY | DateUtils.FORMAT_SHOW_DATE)) + 
-                                 " @ " + DateUtils.formatDateTime(this, file.lastModified(), DateUtils.FORMAT_SHOW_TIME));
+            
+            String subTitle = getResources().getString(R.string.last_played) + " ";
+            subTitle += DateUtils.isToday(file.lastModified()) ? getResources().getString(R.string.today) :  DateUtils.formatDateTime(this, file.lastModified(), DateUtils.FORMAT_SHOW_WEEKDAY | DateUtils.FORMAT_SHOW_DATE); 
+            subTitle += " @ " + DateUtils.formatDateTime(this, file.lastModified(), DateUtils.FORMAT_SHOW_TIME);
+            pair.put("subtitle", subTitle);
             
             _saveGameList.add(pair);
         }

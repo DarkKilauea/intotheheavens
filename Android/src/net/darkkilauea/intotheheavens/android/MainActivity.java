@@ -208,7 +208,7 @@ public class MainActivity extends Activity implements View.OnKeyListener, IGameM
                 saveGame();
                 return true;
             case R.id.help:
-                
+                help();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -351,6 +351,12 @@ public class MainActivity extends Activity implements View.OnKeyListener, IGameM
         {
             onTextOutput("Failed to save game! \nException caught: " + ex.toString());
         }
+    }
+    
+    protected void help()
+    {
+        Intent intent = new Intent(this, HelpActivity.class);
+        startActivity(intent);
     }
     
     @Override
