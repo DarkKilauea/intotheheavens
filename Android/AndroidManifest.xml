@@ -12,5 +12,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name="LoadGameActivity" 
+                  android:label="@string/load_game"
+                  android:windowSoftInputMode="adjustResize"
+                  />
+        <activity android:name="SaveGameActivity"
+                  android:label="@string/save_game"
+                  android:windowSoftInputMode="adjustResize"
+                  />
     </application>
 </manifest> 

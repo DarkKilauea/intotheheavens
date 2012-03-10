@@ -2,11 +2,11 @@ package net.darkkilauea.intotheheavens.android;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Context;
+import android.app.LauncherActivity;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
+import android.content.Intent;
 import android.os.Bundle;
-import android.text.Editable;
 import android.text.method.ScrollingMovementMethod;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -14,18 +14,14 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AutoCompleteTextView;
-import android.widget.EditText;
 import android.widget.TextView;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import net.darkkilauea.intotheheavens.GameMode.State;
 import net.darkkilauea.intotheheavens.GameModeManager;
 import net.darkkilauea.intotheheavens.IGameModeListener;
@@ -40,6 +36,9 @@ public class MainActivity extends Activity implements View.OnKeyListener, IGameM
     
     private boolean _saveGameActive = false;
     
+    TextView _consoleView = null;
+    AutoCompleteTextView _commandBox = null;
+    
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -48,23 +47,22 @@ public class MainActivity extends Activity implements View.OnKeyListener, IGameM
         
         setContentView(R.layout.main);
         
-        TextView consoleView = (TextView)findViewById(R.id.console_textView);
+        _consoleView = (TextView)findViewById(R.id.console_textView);
+        _commandBox = (AutoCompleteTextView)findViewById(R.id.command_textBox);
         
         if (savedInstanceState != null)
         {
             _saveGameActive = savedInstanceState.getBoolean("saveGameAllowed");
-            consoleView.setText(savedInstanceState.getString("consoleHistory"));
+            _consoleView.setText(savedInstanceState.getString("consoleHistory"));
         }
         else
         {
             _saveGameActive = false;
-            consoleView.setText(R.string.welcomeMessage);
+            _consoleView.setText(R.string.welcomeMessage);
         }
         
-        consoleView.setMovementMethod(ScrollingMovementMethod.getInstance());
-        
-        AutoCompleteTextView commandBox = (AutoCompleteTextView)findViewById(R.id.command_textBox);
-        commandBox.setOnKeyListener(this);
+        _consoleView.setMovementMethod(ScrollingMovementMethod.getInstance());
+        _commandBox.setOnKeyListener(this);
         
         List<Object> storedData = (List<Object>)getLastNonConfigurationInstance();
         
@@ -100,8 +98,7 @@ public class MainActivity extends Activity implements View.OnKeyListener, IGameM
         super.onResume();
         // The activity has become visible (it is now "resumed").
         
-        TextView consoleView = (TextView)findViewById(R.id.console_textView);
-        consoleView.post(new Runnable() 
+        _consoleView.post(new Runnable() 
         {
             public void run() 
             {
@@ -131,6 +128,9 @@ public class MainActivity extends Activity implements View.OnKeyListener, IGameM
         
         _mainMode.unregisterListener(this);
         _mainMode = null;
+        
+        _consoleView = null;
+        _commandBox = null;
     }
     
     @Override
@@ -139,9 +139,7 @@ public class MainActivity extends Activity implements View.OnKeyListener, IGameM
         super.onSaveInstanceState(outState);
         //Save any custom state here
         outState.putBoolean("saveGameAllowed", _saveGameActive);
-        
-        TextView consoleView = (TextView)findViewById(R.id.console_textView);
-        outState.putString("consoleHistory", consoleView.getText().toString());
+        outState.putString("consoleHistory", _consoleView.getText().toString());
     }
     
     @Override
@@ -156,14 +154,11 @@ public class MainActivity extends Activity implements View.OnKeyListener, IGameM
 
     public boolean onKey(View v, int keyCode, KeyEvent event) 
     {
-        AutoCompleteTextView commandBox = (AutoCompleteTextView)findViewById(R.id.command_textBox);
-        if (v == commandBox && keyCode == KeyEvent.KEYCODE_ENTER)
+        if (v == _commandBox && keyCode == KeyEvent.KEYCODE_ENTER)
         {
             if(_manager.getActiveMode() != null)
             {
-                TextView consoleView = (TextView)findViewById(R.id.console_textView);
-
-                String commandText = commandBox.getText().toString();
+                String commandText = _commandBox.getText().toString();
                 if(commandText.startsWith("/") || commandText.startsWith("!"))
                 {
                     commandText = commandText.substring(1, commandText.length());
@@ -171,8 +166,8 @@ public class MainActivity extends Activity implements View.OnKeyListener, IGameM
 
                 if (commandText.length() == 0) return false;
 
-                consoleView.setText(consoleView.getText().toString() + ">" + commandText + "\n");
-                commandBox.setText("");
+                _consoleView.setText(_consoleView.getText().toString() + ">" + commandText + "\n");
+                _commandBox.setText("");
                 
                 autoScrollConsole();
                 
@@ -182,7 +177,7 @@ public class MainActivity extends Activity implements View.OnKeyListener, IGameM
             }
             else
             {
-                commandBox.setText("");
+                _commandBox.setText("");
             }
         }
         
@@ -235,17 +230,13 @@ public class MainActivity extends Activity implements View.OnKeyListener, IGameM
 
     public void onTextOutput(String output) 
     {
-        TextView consoleView = (TextView)findViewById(R.id.console_textView);
-        consoleView.setText(consoleView.getText().toString() + output + "\n");
-        
+        _consoleView.setText(_consoleView.getText().toString() + output + "\n");
         autoScrollConsole();
     }
 
     public void onClearOutput() 
     {
-        TextView consoleView = (TextView)findViewById(R.id.console_textView);
-        consoleView.setText("");
-        
+        _consoleView.setText("");
         autoScrollConsole();
     }
     
@@ -259,13 +250,11 @@ public class MainActivity extends Activity implements View.OnKeyListener, IGameM
     
     protected void autoScrollConsole()
     {
-        TextView consoleView = (TextView)findViewById(R.id.console_textView);
-        
-        final int scrollAmount = consoleView.getLayout().getLineTop(consoleView.getLineCount()) - consoleView.getHeight();
+        final int scrollAmount = _consoleView.getLayout().getLineTop(_consoleView.getLineCount()) - _consoleView.getHeight();
         if (scrollAmount > 0)
-            consoleView.scrollTo(0, scrollAmount);
+            _consoleView.scrollTo(0, scrollAmount);
         else
-            consoleView.scrollTo(0,0);
+            _consoleView.scrollTo(0,0);
     }
     
     protected WorldState initializeWorld() throws IOException, Exception
@@ -304,27 +293,11 @@ public class MainActivity extends Activity implements View.OnKeyListener, IGameM
     
     protected void loadGame()
     {
-        final File saveDir = this.getDir("savegames", MODE_PRIVATE);
-        final String[] saveGameList = saveDir.list(new FilenameFilter() 
-        {
-            public boolean accept(File dir, String filename) 
-            {
-                if (filename.endsWith(".sav")) return true;
-                else return false;
-            }
-        });
+        File saveDir = this.getDir("savegames", MODE_PRIVATE);
+        Intent intent = new Intent(this, LoadGameActivity.class);
+        intent.putExtra("saveGamePath", saveDir.getPath());
         
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(R.string.load_game);
-        builder.setItems(saveGameList, new OnClickListener() 
-        {
-            public void onClick(DialogInterface dialog, int item) 
-            {
-                loadGame(saveDir.getPath() + File.separator + saveGameList[item]);
-            }
-        });
-        
-        builder.show();
+        startActivityForResult(intent, LoadGameActivity.ACTION_LOAD);
     }
     
     protected void loadGame(String filename)
@@ -356,61 +329,11 @@ public class MainActivity extends Activity implements View.OnKeyListener, IGameM
     
     protected void saveGame()
     {
-        final File saveDir = this.getDir("savegames", MODE_PRIVATE);
-        final String[] saveGameList = saveDir.list(new FilenameFilter() 
-        {
-            public boolean accept(File dir, String filename) 
-            {
-                if (filename.endsWith(".sav")) return true;
-                else return false;
-            }
-        });
+        File saveDir = this.getDir("savegames", MODE_PRIVATE);
+        Intent intent = new Intent(this, SaveGameActivity.class);
+        intent.putExtra("saveGamePath", saveDir.getPath());
         
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(R.string.save_game);
-        
-        final EditText editBox = new EditText(this);
-        builder.setView(editBox);
-        
-        builder.setItems(saveGameList, new OnClickListener() 
-        {
-            public void onClick(DialogInterface dialog, int item) 
-            {
-                String outPath = saveDir.getPath() + File.separator + saveGameList[item];
-                if (!outPath.endsWith(".sav")) 
-                {
-                    outPath = outPath + ".sav";
-                }
-                
-                saveGame(outPath);
-                dialog.dismiss();
-            }
-        });
-        
-        builder.setPositiveButton("Save", new OnClickListener() 
-        {
-            public void onClick(DialogInterface arg0, int arg1) 
-            {
-                String outPath = saveDir.getPath() + File.separator + editBox.getText().toString();
-                if (!outPath.endsWith(".sav")) 
-                {
-                    outPath = outPath + ".sav";
-                }
-                
-                saveGame(outPath);
-                arg0.dismiss();
-            }
-        });
-        
-        builder.setNegativeButton("Cancel", new OnClickListener() 
-        {
-            public void onClick(DialogInterface arg0, int arg1) 
-            {
-                arg0.cancel();
-            }
-        });
-        
-        builder.show();
+        startActivityForResult(intent, SaveGameActivity.ACTION_SAVE);
     }
     
     protected void saveGame(String filename)
@@ -427,6 +350,25 @@ public class MainActivity extends Activity implements View.OnKeyListener, IGameM
         catch (Exception ex)
         {
             onTextOutput("Failed to save game! \nException caught: " + ex.toString());
+        }
+    }
+    
+    @Override
+    protected void onActivityResult (int requestCode, int resultCode, Intent data)
+    {
+        if (resultCode == RESULT_OK)
+        {
+            switch (requestCode)
+            {
+                case LoadGameActivity.ACTION_LOAD:
+                    loadGame(data.getStringExtra("Filename"));
+                    break;
+                case SaveGameActivity.ACTION_SAVE:
+                    saveGame(data.getStringExtra("Filename"));
+                    break;
+                default:
+                    break;
+            }
         }
     }
 }

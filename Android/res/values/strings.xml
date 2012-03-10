@@ -4,6 +4,13 @@
     <string name="new_game">New Game</string>
     <string name="load_game">Load Game</string>
     <string name="save_game">Save Game</string>
+    <string name="no_saves">No Saved Games.</string>
+    <string name="save">Save</string>
     <string name="help">Help</string>
     <string name="welcomeMessage">Welcome to Into The Heavens For Android v0.6!\n\nTo start a new game, tap on your menu key and then tap on New Game.\nTo load an existing play-through, tap on your menu key and then tap on Load Game.\n</string>
+    <string name="warning_duplicate_save_title">Duplicate Save</string>
+    <string name="warning_duplicate_save_text">This save name appears to already exist.  Do you want to replace the existing save?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="today">Today</string>
 </resources>
