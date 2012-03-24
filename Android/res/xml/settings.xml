@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory 
+        android:title="External Storage"
+        android:key="external_storage"
+        >
+        <CheckBoxPreference 
+            android:key="use_external_saves"
+            android:title="@string/pref_use_external_saves_title" 
+            android:summary="@string/pref_use_external_saves_summary"
+            android:defaultValue="false"
+        />
+        <ListPreference 
+            android:key="active_mod"
+            android:title="@string/pref_active_mod_title"
+            android:summary="@string/pref_active_mod_summary"
+            android:defaultValue="None" 
+        />
+    </PreferenceCategory>
+</PreferenceScreen>

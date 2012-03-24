@@ -7,6 +7,7 @@
     <string name="new_game">New Game</string>
     <string name="load_game">Load Game</string>
     <string name="save_game">Save Game</string>
+    <string name="settings">Settings</string>
     <string name="no_saves">No Saved Games Detected.</string>
     <string name="save">Save</string>
     <string name="help">Help</string>
@@ -17,6 +18,10 @@
     <string name="no">No</string>
     <string name="today">Today</string>
     <string name="last_played">Last Played:</string>
+    <string name="pref_use_external_saves_title">Use External Storage</string>
+    <string name="pref_use_external_saves_summary">Will save games for the main game on external storage (usually an SD card).  Games for mods are always saved externally.</string>
+    <string name="pref_active_mod_title">Active Mod</string>
+    <string name="pref_active_mod_summary">Pick a modification to play instead of the original game.  Mods must be placed in external storage (usually an SD card).</string>
     <string name="help_html">&lt;html&gt;
 	&lt;head&gt;
 		&lt;style type=&quot;text/css&quot;&gt;

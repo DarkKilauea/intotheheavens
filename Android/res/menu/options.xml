@@ -10,6 +10,9 @@
           android:title="@string/save_game" 
           android:icon="@android:drawable/ic_menu_save" 
           />
+    <item android:id="@+id/settings"
+          android:title="@string/settings"
+          />
     <item android:id="@+id/help" 
           android:title="@string/help" 
           android:icon="@android:drawable/ic_menu_help" 

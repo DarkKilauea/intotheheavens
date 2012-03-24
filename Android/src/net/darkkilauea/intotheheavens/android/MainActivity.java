@@ -1,10 +1,6 @@
 package net.darkkilauea.intotheheavens.android;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.LauncherActivity;
-import android.content.DialogInterface;
-import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
@@ -207,6 +203,9 @@ public class MainActivity extends Activity implements View.OnKeyListener, IGameM
             case R.id.save_game:
                 saveGame();
                 return true;
+            case R.id.settings:
+                launchSettings();
+                return true;
             case R.id.help:
                 help();
                 return true;
@@ -356,6 +355,12 @@ public class MainActivity extends Activity implements View.OnKeyListener, IGameM
     protected void help()
     {
         Intent intent = new Intent(this, HelpActivity.class);
+        startActivity(intent);
+    }
+    
+    protected void launchSettings()
+    {
+        Intent intent = new Intent(this, SettingsActivity.class);
         startActivity(intent);
     }
     
