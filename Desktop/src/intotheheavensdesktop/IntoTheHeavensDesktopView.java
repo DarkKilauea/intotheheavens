@@ -407,7 +407,7 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
             if (source != null)
             {
                 source.play();
-                source.setVolume(0.25f);
+                //source.setVolume(0.25f);
                 _audioSources.put(++_lastAudioId, source);
             }
             else return 0;
@@ -443,6 +443,16 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
         _audioSources.get(audioId).stop();
         _audioSources.remove(audioId);
     }
+    
+    private void stopAllPlayingAudio()
+    {
+        for (AudioPlayer source : _audioSources.values()) 
+        {
+            source.stop();
+        }
+        
+        _audioSources.clear();
+    }
 
     @Action
     public void showAboutBox() 
@@ -461,6 +471,7 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
     {
         try
         {
+            stopAllPlayingAudio();
             WorldState world = new WorldState();
             world.loadLocations(new File(_locationDir));
             
@@ -499,6 +510,7 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
             
             try
             {
+                stopAllPlayingAudio();
                 WorldState world = new WorldState();
                 world.loadLocations(new File(_locationDir));
 
