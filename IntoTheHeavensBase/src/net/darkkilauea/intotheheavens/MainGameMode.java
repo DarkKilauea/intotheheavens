@@ -233,10 +233,7 @@ public class MainGameMode extends GameMode implements IVirtualMachineDelegate
                 args.add(new Variable("$arg1", oldLocationName));
                 
                 _world.setCurrentLocation(newLocation);
-                for(IGameModeListener listener : _listeners)
-                {
-                    listener.onLocationChange();
-                }
+                _listener.onLocationChange();
                 
                 executeEventHandler("OnEnter", args);
             }
@@ -260,6 +257,52 @@ public class MainGameMode extends GameMode implements IVirtualMachineDelegate
             if (name.equalsIgnoreCase("Random"))
             {
                 return new Variable("NOT_A_VAR", _rand.nextDouble());
+            }
+            else if (name.equalsIgnoreCase("playAudio"))
+            {
+                int id = 0;
+                if (args.size() > 1)
+                {
+                    Variable arg1 = args.get(1);
+                    if (arg1.getType() == ScriptObject.SOT_STRING) id = _listener.onStartAudio(arg1.toString());
+                    else if (arg1.getType() == ScriptObject.SOT_INTEGER) 
+                    {
+                        _listener.onResumeAudio(arg1.toInt());
+                        id = arg1.toInt();
+                    }
+                }
+                
+                return new Variable("NOT_A_VAR", id);
+            }
+            else if (name.equalsIgnoreCase("pauseAudio"))
+            {
+                int id = 0;
+                if (args.size() > 1)
+                {
+                    Variable arg1 = args.get(1);
+                    if (arg1.getType() == ScriptObject.SOT_INTEGER) 
+                    {
+                        _listener.onPauseAudio(arg1.toInt());
+                        id = arg1.toInt();
+                    }
+                }
+                
+                return new Variable("NOT_A_VAR", id);
+            }
+            else if (name.equalsIgnoreCase("stopAudio"))
+            {
+                int id = 0;
+                if (args.size() > 1)
+                {
+                    Variable arg1 = args.get(1);
+                    if (arg1.getType() == ScriptObject.SOT_INTEGER) 
+                    {
+                        _listener.onStopAudio(arg1.toInt());
+                        id = arg1.toInt();
+                    }
+                }
+                
+                return new Variable("NOT_A_VAR", id);
             }
             else   
             {

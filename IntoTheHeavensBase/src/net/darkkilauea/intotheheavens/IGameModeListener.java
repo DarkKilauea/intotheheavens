@@ -14,4 +14,8 @@ public interface IGameModeListener
     public void onLocationChange();
     public void onTextOutput(String output);
     public void onClearOutput();
+    public int onStartAudio(String filename);
+    public void onResumeAudio(int audioId);
+    public void onPauseAudio(int audioId);
+    public void onStopAudio(int audioId);
 }

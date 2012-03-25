@@ -4,9 +4,6 @@
  */
 package net.darkkilauea.intotheheavens;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  *
  * @author joshua
@@ -24,7 +21,7 @@ public class GameMode
     
     protected GameModeManager _manager = null;
     protected State _state = State.Unknown;
-    protected List<IGameModeListener> _listeners = new ArrayList<IGameModeListener>();
+    protected IGameModeListener _listener = null;
     
     public boolean initialize(GameModeManager manager)
     {
@@ -55,14 +52,14 @@ public class GameMode
         return _state;
     }
     
-    public boolean registerListener(IGameModeListener listener)
+    public IGameModeListener getListener()
     {
-        return _listeners.add(listener);
+        return _listener;
     }
     
-    public boolean unregisterListener(IGameModeListener listener)
+    public void setListener(IGameModeListener listener)
     {
-        return _listeners.remove(listener);
+        _listener = listener;
     }
     
     public void injectTextInput(String input)
@@ -72,17 +69,11 @@ public class GameMode
     
     protected void printToAllListeners(String message)
     {
-        for(IGameModeListener listener : _listeners)
-        {
-            listener.onTextOutput(message);
-        }
+        _listener.onTextOutput(message);
     }
     
     protected void clearAllListeners()
     {
-        for(IGameModeListener listener : _listeners)
-        {
-            listener.onClearOutput();
-        }
+        _listener.onClearOutput();
     }
 }

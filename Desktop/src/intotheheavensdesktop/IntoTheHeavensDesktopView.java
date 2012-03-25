@@ -4,6 +4,12 @@
 
 package intotheheavensdesktop;
 
+import intotheheavensdesktop.sound.AudioPlayer;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.UnsupportedAudioFileException;
 import net.darkkilauea.intotheheavens.GameMode.State;
 import org.jdesktop.application.Action;
 import org.jdesktop.application.ResourceMap;
@@ -15,6 +21,8 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.util.HashMap;
+import java.util.Map;
 import javax.swing.Timer;
 import javax.swing.Icon;
 import javax.swing.JDialog;
@@ -37,6 +45,11 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
     private String _contentDir = null;
     private String _saveGameDir = null;
     private String _locationDir = null;
+    private String _soundDir = null;
+    private String _musicDir = null;
+    private Timer _audioUpdateTimer = null;
+    private Map<Integer, AudioPlayer> _audioSources = new HashMap<Integer, AudioPlayer>();
+    private int _lastAudioId;
     
     public IntoTheHeavensDesktopView(SingleFrameApplication app) 
     {
@@ -44,6 +57,28 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
 
         initComponents();
         setupStatusBar();
+        _audioUpdateTimer = new Timer(200, new ActionListener() 
+        {
+            public void actionPerformed(ActionEvent e) 
+            {
+                for (AudioPlayer source : _audioSources.values()) 
+                {
+                    try
+                    {
+                        if (source.getState() == AudioPlayer.State.PLAYING)
+                        {
+                            source.update();
+                        }
+                    } 
+                    catch (IOException ex)
+                    {
+                        source.stop();
+                    }
+                }
+            }
+        });
+        _audioUpdateTimer.setRepeats(true);
+        _audioUpdateTimer.start();
         
         IntoTheHeavensDesktopApp application = IntoTheHeavensDesktopApp.getApplication();
         String[] args = application.getArgs();
@@ -60,14 +95,15 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
         
         String userHomeDir = System.getProperty("user.home");
         
-        
         _saveGameDir = userHomeDir + File.separator + ".intotheheavens" + File.separator + "savegames" + File.separator;
         _locationDir = _contentDir + File.separator + "locations" + File.separator;
+        _soundDir = _contentDir + File.separator + "sounds" + File.separator;
+        _musicDir = _contentDir + File.separator + "music" + File.separator;
         
         new File(_saveGameDir).mkdirs();
         
         _mainMode = new MainGameMode();
-        _mainMode.registerListener(this);
+        _mainMode.setListener(this);
         
         _manager.registerGameMode("Main", _mainMode);
         
@@ -355,6 +391,57 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
         {
             onTextOutput("Failed to auto save game! \nException caught: " + ex.toString());
         }
+    }
+    
+    public int onStartAudio(String filename) 
+    {
+        try 
+        {
+            File soundFile = new File(_soundDir + filename);
+            File musicFile = new File(_musicDir + filename);
+            
+            AudioPlayer source = null;
+            if (soundFile.exists()) source = new AudioPlayer(soundFile);
+            else if (musicFile.exists()) source = new AudioPlayer(musicFile);
+            
+            if (source != null)
+            {
+                source.play();
+                source.setVolume(0.25f);
+                _audioSources.put(++_lastAudioId, source);
+            }
+            else return 0;
+        } 
+        catch (Exception ex) 
+        {
+            onTextOutput("Failed to start audio! \nException caught: " + ex.toString());
+            return 0;
+        } 
+        
+        return _lastAudioId;
+    }
+    
+    public void onResumeAudio(int audioId)
+    {
+        try 
+        {
+            _audioSources.get(audioId).play();
+        }
+        catch (Exception ex) 
+        {
+            onTextOutput("Failed to resume audio! \nException caught: " + ex.toString());
+        }
+    }
+
+    public void onPauseAudio(int audioId) 
+    {
+        _audioSources.get(audioId).pause();
+    }
+
+    public void onStopAudio(int audioId) 
+    {
+        _audioSources.get(audioId).stop();
+        _audioSources.remove(audioId);
     }
 
     @Action
