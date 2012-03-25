@@ -483,7 +483,10 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
         {
             stopAllPlayingAudio();
             WorldState world = new WorldState();
-            world.loadLocations(new File(_locationDir));
+            
+            File locDir = new File(_locationDir);
+            if (!locDir.exists()) throw new Exception("Could not find location directory!");
+            world.loadLocations(locDir);
             
             Location startLocation = world.findLocation("Start");
             if(startLocation != null) world.setCurrentLocation(startLocation);
@@ -522,7 +525,10 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
             {
                 stopAllPlayingAudio();
                 WorldState world = new WorldState();
-                world.loadLocations(new File(_locationDir));
+                
+                File locDir = new File(_locationDir);
+                if (!locDir.exists()) throw new Exception("Could not find location directory!");
+                world.loadLocations(locDir);
 
                 FileInputStream stream = new FileInputStream(loadFile);
                 if(world.loadState(stream))
