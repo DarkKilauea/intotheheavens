@@ -50,6 +50,9 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
     private Timer _audioUpdateTimer = null;
     private Map<Integer, AudioPlayer> _audioSources = new HashMap<Integer, AudioPlayer>();
     private int _lastAudioId;
+    private float _masterVolume = 1.0f;
+    private float _musicVolume = 1.0f;
+    private float _soundEffectVolume = 1.0f;
     
     public IntoTheHeavensDesktopView(SingleFrameApplication app) 
     {
@@ -401,13 +404,20 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
             File musicFile = new File(_musicDir + filename);
             
             AudioPlayer source = null;
-            if (soundFile.exists()) source = new AudioPlayer(soundFile);
-            else if (musicFile.exists()) source = new AudioPlayer(musicFile);
+            if (soundFile.exists())
+            {
+                source = new AudioPlayer(soundFile);
+                source.setVolume(_masterVolume * _soundEffectVolume);
+            }
+            else if (musicFile.exists()) 
+            {
+                source = new AudioPlayer(musicFile);
+                source.setVolume(_masterVolume * _musicVolume);
+            }
             
             if (source != null)
             {
                 source.play();
-                //source.setVolume(0.25f);
                 _audioSources.put(++_lastAudioId, source);
             }
             else return 0;
