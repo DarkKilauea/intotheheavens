@@ -226,7 +226,7 @@ public class MainGameMode extends GameMode implements IVirtualMachineDelegate
             Location newLocation = _world.findLocation(locationName);
             if(newLocation != null)
             {
-                clearAllListeners();
+                //clearAllListeners();
                 
                 ArrayList<Variable> args = new ArrayList<Variable>(2);
                 args.add(new Variable("$arg0", "OnEnter"));
