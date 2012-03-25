@@ -6,10 +6,6 @@ package intotheheavensdesktop;
 
 import intotheheavensdesktop.sound.AudioPlayer;
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.UnsupportedAudioFileException;
 import net.darkkilauea.intotheheavens.GameMode.State;
 import org.jdesktop.application.Action;
 import org.jdesktop.application.ResourceMap;
@@ -75,7 +71,8 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
                     } 
                     catch (IOException ex)
                     {
-                        source.stop();
+                        try { source.stop(); }
+                        catch (Exception ex2) { }
                     }
                 }
             }
@@ -450,15 +447,19 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
 
     public void onStopAudio(int audioId) 
     {
-        _audioSources.get(audioId).stop();
+        AudioPlayer source = _audioSources.get(audioId);
+        try { source.stop(); }
+        catch (Exception ex) {}
+        
         _audioSources.remove(audioId);
     }
     
     private void stopAllPlayingAudio()
     {
         for (AudioPlayer source : _audioSources.values()) 
-        {
-            source.stop();
+        { 
+            try { source.stop(); }
+            catch (Exception ex) {}
         }
         
         _audioSources.clear();

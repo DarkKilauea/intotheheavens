@@ -34,6 +34,7 @@ public class AudioPlayer
     private AudioFormat _format = null;
     private SourceDataLine _line = null;
     private float _gain = 1.0f;
+    private File _audioFile = null;
     
     public State getState()
     {
@@ -62,23 +63,28 @@ public class AudioPlayer
         }
     }
     
-    public AudioPlayer(File audioFile) throws IOException, UnsupportedAudioFileException
+    public AudioPlayer(File audioFile)
     {
-        _stream = AudioSystem.getAudioInputStream(audioFile);
-        _format = _stream.getFormat();
-        _format = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED,
-                                  _format.getSampleRate(),
-                                  16,
-                                  _format.getChannels(),
-                                  _format.getChannels() * (16 / 8),
-                                  _format.getSampleRate(),
-                                  false);
-        _stream = AudioSystem.getAudioInputStream(_format, _stream);
+        _audioFile = audioFile;
         _state = State.STOPPED;
     }
     
-    public void play() throws LineUnavailableException, IOException
+    public void play() throws LineUnavailableException, IOException, UnsupportedAudioFileException
     {
+        if (_stream == null)
+        {
+            _stream = AudioSystem.getAudioInputStream(_audioFile);
+            _format = _stream.getFormat();
+            _format = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED,
+                                      _format.getSampleRate(),
+                                      16,
+                                      _format.getChannels(),
+                                      _format.getChannels() * (16 / 8),
+                                      _format.getSampleRate(),
+                                      false);
+            _stream = AudioSystem.getAudioInputStream(_format, _stream);
+        }
+        
         if (_line == null)
         {
             _line = AudioSystem.getSourceDataLine(_format);
@@ -87,35 +93,49 @@ public class AudioPlayer
         }
         
         _line.start();
-        update();
         _state = State.PLAYING;
+        update();
     }
     
     public void pause()
     {
-        _line.stop();
+        if (_line != null) _line.stop();
         _state = State.PAUSED;
     }
     
-    public void stop()
+    public void stop() throws IOException
     {
-        _line.stop();
-        _line.flush();
-        _line.close();
-        _line = null;
+        if (_line != null)
+        {
+            _line.stop();
+            _line.flush();
+            _line.close();
+            _line = null;
+        }
+        
+        if (_stream != null)
+        {
+            _stream.close();
+            _stream = null;
+        }
+        _format = null;
+        
         _state = State.STOPPED;
     }
     
     public void update() throws IOException
     {
-        byte[] buffer = new byte[_line.available()];
-        int bytesRead = _stream.read(buffer, 0, buffer.length);
-        
-        if (bytesRead >= 0) _line.write(buffer, 0, bytesRead);
-        else
+        if (_state == State.PLAYING)
         {
-            _line.drain();
-            stop();
+            byte[] buffer = new byte[_line.available()];
+            int bytesRead = _stream.read(buffer, 0, buffer.length);
+
+            if (bytesRead >= 0) _line.write(buffer, 0, bytesRead);
+            else
+            {
+                _line.drain();
+                stop();
+            }
         }
     }
 }
