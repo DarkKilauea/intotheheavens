@@ -52,6 +52,6 @@ public class Instruction
     @Override
     public String toString() 
     {
-        return "OP: " + _op + " ARG0: " + _arg0 + " ARG1: " + _arg1 + " ARG2: " + _arg2 + " ARG3: " + _arg3;
+        return _op + ": " + _arg0 + ", " + _arg1 + ", " + _arg2 + ", " + _arg3;
     }
 }

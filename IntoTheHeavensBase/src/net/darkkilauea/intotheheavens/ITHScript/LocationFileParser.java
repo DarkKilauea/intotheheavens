@@ -36,6 +36,7 @@ public class LocationFileParser
         final static int Expression = 1;
         final static int Local = 2;
         final static int Global = 3;
+        final static int Table = 4;
         
         int type = 0;
         int pos = 0;
@@ -54,7 +55,7 @@ public class LocationFileParser
         }
     }
     
-    private ExpressionState _expState = new ExpressionState();
+    private Stack<ExpressionState> _expStack = new Stack<ExpressionState>();
     
     public List<Location> getLocations()
     {
@@ -363,10 +364,11 @@ public class LocationFileParser
     
     private void processExpression(Lexer lex) throws IOException, CompileException
     {
-        ExpressionState oldState = new ExpressionState(_expState);
-        _expState.type = ExpressionState.Expression;
-        _expState.pos = -1;
-        _expState.globalNameIdx = -1;
+        ExpressionState expState = new ExpressionState();
+        expState.type = ExpressionState.Expression;
+        expState.pos = -1;
+        expState.globalNameIdx = -1;
+        _expStack.push(expState);
         
         processLogicalOrExpression(lex);
         
@@ -374,8 +376,8 @@ public class LocationFileParser
         {
             case '=':
             {
-                int type = _expState.type;
-                int globalNameIdx = _expState.globalNameIdx;
+                int type = _expStack.peek().type;
+                int globalNameIdx = _expStack.peek().globalNameIdx;
                 
                 if (type == ExpressionState.Expression) EmitCompileError("Assignment to an expression is not allowed.");
                 
@@ -405,8 +407,8 @@ public class LocationFileParser
             case Lexer.TK_MODEQ:
             {
                 int op = _token.getValue();
-                int type = _expState.type;
-                int globalNameIdx = _expState.globalNameIdx;
+                int type = _expStack.peek().type;
+                int globalNameIdx = _expStack.peek().globalNameIdx;
                 
                 if (type == ExpressionState.Expression) EmitCompileError("Assignment to an expression is not allowed.");
                 
@@ -495,7 +497,7 @@ public class LocationFileParser
                 break;
         }
         
-        _expState = oldState;
+        _expStack.pop();
     }
     
     private void processLogicalOrExpression(Lexer lex) throws IOException, CompileException
@@ -799,23 +801,32 @@ public class LocationFileParser
                     int diff = _token.getValue() == Lexer.TK_PLUSPLUS ? 1 : -1;
                     nextToken(lex);
                     
-                    if (_expState.type == ExpressionState.Expression) EmitCompileError("Incrementing or decrementing an expression is not allowed.");
-                    else if (_expState.type == ExpressionState.Local)
+                    if (_expStack.peek().type == ExpressionState.Expression) EmitCompileError("Incrementing or decrementing an expression is not allowed.");
+                    else if (_expStack.peek().type == ExpressionState.Local)
                     {
                         int src = _currentClosure.popTarget();
                         _currentClosure.getInstructions().add(new Instruction(OpCode.OP_INCREMENT, _currentClosure.pushTarget(-1), src, 0, diff));
                     }
-                    else if (_expState.type == ExpressionState.Global)
+                    else if (_expStack.peek().type == ExpressionState.Global)
                     {
                         int src = _currentClosure.popTarget();
                         int dst = _currentClosure.pushTarget(-1);
                         
                         _currentClosure.getInstructions().add(new Instruction(OpCode.OP_INCREMENT, dst, src, 0, diff));
-                        _currentClosure.getInstructions().add(new Instruction(OpCode.OP_SET, dst, _expState.globalNameIdx, 0, 0));
+                        _currentClosure.getInstructions().add(new Instruction(OpCode.OP_SET, dst, _expStack.peek().globalNameIdx, 0, 0));
                     }
                     else EmitCompileError("FATAL! UNKNOWN EXPRESSION STATE!");
                 }
                     return;
+                case '[':
+                {
+                    nextToken(lex);
+                    processExpression(lex);
+                    expectToken(lex, ']');
+
+                    //_currentClosure.getInstructions().add(new Instruction(OpCode.OP_TAL, _blockEnd, _blockEnd, _blockEnd, _blockEnd));
+                }
+                return;
                 default:
                     return;
             }
@@ -824,7 +835,7 @@ public class LocationFileParser
     
     private int factor(Lexer lex) throws IOException, CompileException
     {
-        _expState.type = ExpressionState.Expression;
+        _expStack.peek().type = ExpressionState.Expression;
         
         switch (_token.getValue())
         {
@@ -863,8 +874,8 @@ public class LocationFileParser
                 }
                 
                 _currentClosure.pushTarget(pos);
-                _expState.type = ExpressionState.Local;
-                _expState.pos = pos;
+                _expStack.peek().type = ExpressionState.Local;
+                _expStack.peek().pos = pos;
                 
                 nextToken(lex);
             }
@@ -872,7 +883,7 @@ public class LocationFileParser
             case Lexer.TK_GLOBAL_VARIABLE:
             {
                 String name = _token.getStringValue();
-                _expState.globalNameIdx = _currentClosure.getOrCreateLiteral(new ScriptObject(name));
+                _expStack.peek().globalNameIdx = _currentClosure.getOrCreateLiteral(new ScriptObject(name));
                 
                 int pos = _currentClosure.getVariable(name);
                 if (pos < 0) 
@@ -880,12 +891,12 @@ public class LocationFileParser
                     pos = _currentClosure.pushVariable(name);
                     
                     //Load Global
-                    _currentClosure.getInstructions().add(new Instruction(OpCode.OP_GET, pos, _expState.globalNameIdx, 0, 0));
+                    _currentClosure.getInstructions().add(new Instruction(OpCode.OP_GET, pos, _expStack.peek().globalNameIdx, 0, 0));
                 }
                 
                 _currentClosure.pushTarget(pos);
-                _expState.type = ExpressionState.Global;
-                _expState.pos = pos;
+                _expStack.peek().type = ExpressionState.Global;
+                _expStack.peek().pos = pos;
                 
                 nextToken(lex);
             }
@@ -934,26 +945,27 @@ public class LocationFileParser
                 int diff = _token.getValue() == Lexer.TK_PLUSPLUS ? 1 : -1;
                 nextToken(lex);
                 
-                ExpressionState oldState = new ExpressionState(_expState);
+                ExpressionState newState = new ExpressionState(_expStack.peek());
+                _expStack.push(newState);
                 
                 processPrefixedExpression(lex);
                 
-                if (_expState.type == ExpressionState.Expression) EmitCompileError("Incrementing or decrementing an expression is not allowed.");
-                else if (_expState.type == ExpressionState.Local)
+                if (_expStack.peek().type == ExpressionState.Expression) EmitCompileError("Incrementing or decrementing an expression is not allowed.");
+                else if (_expStack.peek().type == ExpressionState.Local)
                 {
                     int src = _currentClosure.topTarget();
                     _currentClosure.getInstructions().add(new Instruction(OpCode.OP_PREFIX_INCREMENT, _currentClosure.pushTarget(-1), src, 0, diff));
                 }
-                else if (_expState.type == ExpressionState.Global)
+                else if (_expStack.peek().type == ExpressionState.Global)
                 {
                     int src = _currentClosure.topTarget();
                     int dst = _currentClosure.pushTarget(-1);
                     _currentClosure.getInstructions().add(new Instruction(OpCode.OP_PREFIX_INCREMENT, dst, src, 0, diff));
-                    _currentClosure.getInstructions().add(new Instruction(OpCode.OP_SET, dst, _expState.globalNameIdx, 0, 0));
+                    _currentClosure.getInstructions().add(new Instruction(OpCode.OP_SET, dst, _expStack.peek().globalNameIdx, 0, 0));
                 }
                 else EmitCompileError("FATAL! UNKNOWN EXPRESSION STATE!");
                 
-                _expState = oldState;
+                _expStack.pop();
             }
                 break;
             case '(':
@@ -963,7 +975,7 @@ public class LocationFileParser
                 break;
             case Lexer.TK_INVOKE:
             {
-                _expState.type = ExpressionState.Expression;
+                _expStack.peek().type = ExpressionState.Expression;
                 nextToken(lex);
 
                 int nArgs = 0;
@@ -978,7 +990,7 @@ public class LocationFileParser
                         _currentClosure.getInstructions().add(new Instruction(OpCode.OP_MOVE, _currentClosure.pushTarget(-1), target, 0, 0));
                     }
                     
-                    nArgs++;
+                    ++nArgs;
 
                     if (_token.getValue() == ',')
                     {
@@ -995,6 +1007,68 @@ public class LocationFileParser
                 }
 
                 _currentClosure.getInstructions().add(new Instruction(OpCode.OP_INVOKE, _currentClosure.pushTarget(-1), nArgs, base, 0));
+            }
+                break;
+            case '{':
+            {
+                int targetTable = _currentClosure.pushTarget(-1);
+                _currentClosure.getInstructions().add(new Instruction(OpCode.OP_LOAD_TABLE, targetTable, 0, 0, 0));
+                
+                //_expStack.peek().type = ExpressionState.Expression;
+                //_expStack.peek().pos = targetTable;
+                
+                nextToken(lex);
+                
+                int num = 0;
+                while (_token.getValue() != '}')
+                {
+                    processExpression(lex);
+
+                    int targetKey = _currentClosure.topTarget();
+                    if (_currentClosure.isVariable(targetKey))
+                    {
+                        targetKey = _currentClosure.popTarget();
+                        _currentClosure.getInstructions().add(new Instruction(OpCode.OP_MOVE, _currentClosure.pushTarget(-1), targetKey, 0, 0));
+                    }
+                    
+                    int targetValue = -1;
+                    if (_token.getValue() == ':')
+                    {
+                        nextToken(lex);
+                        processExpression(lex);
+                        
+                        targetValue = _currentClosure.topTarget();
+                        if (_currentClosure.isVariable(targetValue))
+                        {
+                            targetValue = _currentClosure.popTarget();
+                            _currentClosure.getInstructions().add(new Instruction(OpCode.OP_MOVE, _currentClosure.pushTarget(-1), targetValue, 0, 0));
+                        }
+                    }
+                    
+                    if (targetValue >= 0) 
+                    {
+                        _currentClosure.getInstructions().add(new Instruction(OpCode.OP_TABLE_SET, targetTable, targetKey, targetValue, 0));
+                        _currentClosure.popTarget();
+                        _currentClosure.popTarget();
+                    }
+                    else
+                    {
+                        _currentClosure.getInstructions().add(new Instruction(OpCode.OP_LOAD, _currentClosure.pushTarget(-1), _currentClosure.getOrCreateLiteral(new ScriptObject(num)), 0, 0));
+                        _currentClosure.getInstructions().add(new Instruction(OpCode.OP_TABLE_SET, targetTable, _currentClosure.popTarget(), targetKey, 0));
+                        _currentClosure.popTarget();
+                    }
+
+                    ++num;
+                    
+                    if (_token.getValue() == ',')
+                    {
+                        nextToken(lex);
+                        if (_token.getValue() == '}') EmitCompileError("Expected an expression after comma.");
+                    }
+                    else if (_token.getValue() != '}') EmitCompileError("Expected a comma or closing brace '}' after expression.");  
+                }
+                
+                nextToken(lex);
             }
                 break;
         default:

@@ -10,6 +10,18 @@ location "Start"
 		print "You enter the maze and find yourself in a corridor."
 		print ""
 		print "There is a opening to your west."
+		
+		ranValue = invoke "Random"
+		player = { 	"Name" : "Bob", 
+					"Greetings" : {	"Hi", 
+									"Hello", 
+									"Greetings", 
+									"Yo" }, 
+					"Health" : 0.9, 
+					"Random" : ranValue }
+		print player
+		
+		//invoke "playAudio", "training_t1.ogg"
 	}
 	
 	command "Go"

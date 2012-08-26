@@ -5,6 +5,7 @@
 package net.darkkilauea.intotheheavens.ITHScript;
 
 import java.io.*;
+import java.util.Map;
 
 /**
  *
@@ -34,6 +35,12 @@ public final class Variable extends ScriptObject
     }
     
     public Variable(String name, String value)
+    {
+        super(value);
+        setName(name);
+    }
+    
+    public Variable(String name, Map<ScriptObject, ScriptObject> value)
     {
         super(value);
         setName(name);
@@ -76,22 +83,34 @@ public final class Variable extends ScriptObject
         _intValue = value;
         _floatValue = 0;
         _stringValue = null;
+        _tableValue = null;
     }
     
     public void setValue(double value)
     {
         _type = ScriptObject.SOT_FLOAT;
-        _floatValue = value;
         _intValue = 0;
+        _floatValue = value;
         _stringValue = null;
+        _tableValue = null;
     }
     
     public void setValue(String value)
     {
         _type = ScriptObject.SOT_STRING;
-        _stringValue = value;
         _intValue = 0;
         _floatValue = 0;
+        _stringValue = value;
+        _tableValue = null;
+    }
+    
+    public void setValue(Map<ScriptObject, ScriptObject> value)
+    {
+        _type = ScriptObject.SOT_TABLE;
+        _intValue = 0;
+        _floatValue = 0;
+        _stringValue = null;
+        _tableValue = value;
     }
     
     public boolean isNull()
@@ -102,9 +121,10 @@ public final class Variable extends ScriptObject
     public void setNull()
     {
         _type = ScriptObject.SOT_NULL;
-        _stringValue = null;
         _intValue = 0;
         _floatValue = 0;
+        _stringValue = null;
+        _tableValue = null;
     }
     
     public void copyTo(Variable other)
@@ -114,6 +134,7 @@ public final class Variable extends ScriptObject
         other._floatValue = this._floatValue;
         other._intValue = this._intValue;
         other._stringValue = this._stringValue;
+        other._tableValue = this._tableValue;
     }
     
     @Override

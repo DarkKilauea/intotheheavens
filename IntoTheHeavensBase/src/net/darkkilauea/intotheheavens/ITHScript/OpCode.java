@@ -34,6 +34,10 @@ public enum OpCode
     OP_LOGICAL_OR       (0x15),
     OP_LOGICAL_NOT      (0x16),
     OP_RETURN           (0x17),
+    OP_LOAD_TABLE       (0x18),
+    OP_TABLE_GET        (0x19),
+    OP_TABLE_SET        (0x20),
+    OP_SIZEOF           (0x21),
     
     //Commands
     OP_PRINT            (0x40),

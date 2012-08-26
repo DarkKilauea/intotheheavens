@@ -50,7 +50,7 @@ public class VirtualMachine
     
     public ScriptObject executeClosure(Closure closure, List<Variable> args) throws ScriptException
     {
-        //_delegate.onInvokePrint(closure.toString(true));
+        _delegate.onInvokePrint(closure.toString(true));
         
         Stack<Integer> _scopes = new Stack<Integer>();
         int currentScope = 0;
@@ -174,6 +174,27 @@ public class VirtualMachine
                         break;
                     case OP_RETURN:
                         return i._arg1 > 0 ? stack[currentScope + i._arg0] : new ScriptObject();
+                    case OP_LOAD_TABLE:
+                        stack[currentScope + i._arg0] = new ScriptObject(ScriptObject.newTable());
+                        break;
+                    case OP_TABLE_GET:
+                        if (stack[currentScope + i._arg0]._type == ScriptObject.SOT_TABLE)
+                        {
+                            ScriptObject obj = stack[currentScope + i._arg1].toTable().get(stack[currentScope + i._arg2]);
+                            stack[currentScope + i._arg0] = obj != null ? obj : new ScriptObject();
+                        }
+                        else throw new Exception("Cannot index a " + stack[currentScope + i._arg0].typeString() + ".");
+                        break;
+                    case OP_TABLE_SET:
+                        if (stack[currentScope + i._arg0]._type == ScriptObject.SOT_TABLE)
+                        {
+                            stack[currentScope + i._arg0].toTable().put(stack[currentScope + i._arg1], stack[currentScope + i._arg2]);
+                        }
+                        else throw new Exception("Cannot index a " + stack[currentScope + i._arg0].typeString() + ".");
+                        break;
+                    case OP_SIZEOF:
+                        stack[currentScope + i._arg0] = performSizeOf(stack[currentScope + i._arg1]);
+                        break;
                 }
                 current++;
             }
@@ -428,6 +449,7 @@ public class VirtualMachine
         else if (o._type == ScriptObject.SOT_INTEGER) return o.toInt() != 0;
         else if (o._type == ScriptObject.SOT_FLOAT) return o.toFloat() != 0.0;
         else if (o._type == ScriptObject.SOT_STRING) return o.toString().length() > 0;
+        else if (o._type == ScriptObject.SOT_TABLE) return o.toTable().size() > 0;
         else return false;
     }
     
@@ -436,6 +458,19 @@ public class VirtualMachine
         if (o._type == ScriptObject.SOT_INTEGER) return new ScriptObject(-o.toInt());
         else if (o._type == ScriptObject.SOT_FLOAT) return new ScriptObject(-o.toFloat());
         else throw new Exception("Cannot negate a " + o.typeString() + ".");
+    }
+    
+    private ScriptObject performSizeOf(ScriptObject o) throws Exception
+    {
+        switch (o._type)
+        {
+            case ScriptObject.SOT_STRING:
+                return new ScriptObject(o.toString().length());
+            case ScriptObject.SOT_TABLE:
+                return new ScriptObject(o.toTable().size());
+            default:
+                throw new Exception("Cannot get the size of a " + o.typeString() + ".");
+        }
     }
     
     private Variable getVariable(ScriptObject name, List<Variable> args) throws Exception
@@ -473,6 +508,9 @@ public class VirtualMachine
                 break;
             case ScriptObject.SOT_STRING:
                 var.setValue(value.toString());
+                break;
+            case ScriptObject.SOT_TABLE:
+                var.setValue(value.toTable());
                 break;
             default:
                 var.setNull();

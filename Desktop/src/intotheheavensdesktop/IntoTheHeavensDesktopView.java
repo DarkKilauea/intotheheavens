@@ -46,7 +46,7 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
     private Timer _audioUpdateTimer = null;
     private Map<Integer, AudioPlayer> _audioSources = new HashMap<Integer, AudioPlayer>();
     private int _lastAudioId;
-    private float _masterVolume = 1.0f;
+    private float _masterVolume = 0.25f;
     private float _musicVolume = 1.0f;
     private float _soundEffectVolume = 1.0f;
     
