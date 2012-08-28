@@ -22,9 +22,9 @@ import java.util.Map;
 import javax.swing.Timer;
 import javax.swing.Icon;
 import javax.swing.JDialog;
-import javax.swing.JFileChooser;
+import java.awt.FileDialog;
+import java.io.FilenameFilter;
 import javax.swing.JFrame;
-import javax.swing.filechooser.FileFilter;
 import net.darkkilauea.intotheheavens.GameModeManager;
 import net.darkkilauea.intotheheavens.IGameModeListener;
 import net.darkkilauea.intotheheavens.ITHScript.Location;
@@ -95,7 +95,7 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
         
         String userHomeDir = System.getProperty("user.home");
         
-        _saveGameDir = userHomeDir + File.separator + ".intotheheavens" + File.separator + "savegames" + File.separator;
+        _saveGameDir = userHomeDir + File.separator + ".ethershardcastle" + File.separator + "savegames" + File.separator;
         _locationDir = _contentDir + File.separator + "locations" + File.separator;
         _soundDir = _contentDir + File.separator + "sounds" + File.separator;
         _musicDir = _contentDir + File.separator + "music" + File.separator;
@@ -511,12 +511,14 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
     @Action
     public void loadGameAction() 
     {
-        JFrame mainFrame = IntoTheHeavensDesktopApp.getApplication().getMainFrame();
-        JFileChooser dialog = getSaveFileChooser();
+        FileDialog dialog = getSaveFileChooser();
+        dialog.setMode(FileDialog.LOAD);
+        dialog.setTitle("Load Game...");
+        dialog.setVisible(true);
         
-        if(dialog.showOpenDialog(mainFrame) == JFileChooser.APPROVE_OPTION)
+        if(dialog.getFile() != null && !dialog.getFile().isEmpty())
         {
-            File loadFile = dialog.getSelectedFile();
+            File loadFile = new File(dialog.getDirectory() + dialog.getFile());
             if(!loadFile.getName().endsWith(".sav"))
             {
                 loadFile = new File(loadFile.getPath() + ".sav");
@@ -557,12 +559,12 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
     @Action
     public void saveGameAction()
     {
-        JFrame mainFrame = IntoTheHeavensDesktopApp.getApplication().getMainFrame();
-        JFileChooser dialog = getSaveFileChooser();
+        FileDialog dialog = getSaveFileChooser();
+        dialog.setVisible(true);
         
-        if(dialog.showSaveDialog(mainFrame) == JFileChooser.APPROVE_OPTION)
+        if(dialog.getFile() != null && !dialog.getFile().isEmpty())
         {
-            File saveFile = dialog.getSelectedFile();
+            File saveFile = new File(dialog.getDirectory() + dialog.getFile());
             if(!saveFile.getName().endsWith(".sav"))
             {
                 saveFile = new File(saveFile.getPath() + ".sav");
@@ -606,28 +608,23 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
         }
     }
     
-    private JFileChooser getSaveFileChooser()
+    private FileDialog getSaveFileChooser()
     {
-        JFileChooser dialog = new JFileChooser(new File(_saveGameDir).getAbsolutePath());
-        dialog.setAcceptAllFileFilterUsed(false);
-        dialog.setMultiSelectionEnabled(false);
-        dialog.setFileFilter(new FileFilter() {
+        JFrame mainFrame = IntoTheHeavensDesktopApp.getApplication().getMainFrame();
+        FileDialog dialog = new FileDialog(mainFrame, "Save Game...", FileDialog.SAVE);
+        dialog.setDirectory(new File(_saveGameDir).getAbsolutePath());
+        dialog.setFilenameFilter(new FilenameFilter() {
 
             @Override
-            public boolean accept(File f) 
+            public boolean accept(File dir, String name)
             {
-                if(f.isDirectory() && !f.isHidden()) return true;
-                else if(f.getName().endsWith(".sav"))
+                File file = new File(dir.getAbsolutePath() + name);
+                if(file.isDirectory() && !file.isHidden()) return true;
+                else if(name.endsWith(".sav"))
                 {
                     return true;
                 }
                 else return false;
-            }
-
-            @Override
-            public String getDescription() 
-            {
-                return "Save Game Files (.sav)";
             }
         });
         
@@ -638,32 +635,28 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
     public void archiveScripts() 
     {
         JFrame mainFrame = IntoTheHeavensDesktopApp.getApplication().getMainFrame();
-        JFileChooser dialog = new JFileChooser(new File(_locationDir).getAbsolutePath());
-        dialog.setAcceptAllFileFilterUsed(false);
-        dialog.setMultiSelectionEnabled(false);
-        dialog.setFileFilter(new FileFilter() {
+        FileDialog dialog = new FileDialog(mainFrame, "Save Archive...", FileDialog.SAVE);
+        dialog.setDirectory(new File(_locationDir).getAbsolutePath());
+        dialog.setFilenameFilter(new FilenameFilter() {
 
             @Override
-            public boolean accept(File f) 
+            public boolean accept(File dir, String name)
             {
-                if(f.isDirectory() && !f.isHidden()) return true;
-                else if(f.getName().endsWith(".arc"))
+                File file = new File(dir.getAbsolutePath() + name);
+                if(file.isDirectory() && !file.isHidden()) return true;
+                else if(name.endsWith(".arc"))
                 {
                     return true;
                 }
                 else return false;
             }
-
-            @Override
-            public String getDescription() 
-            {
-                return "Archived Location Files (.arc)";
-            }
         });
         
-        if(dialog.showSaveDialog(mainFrame) == JFileChooser.APPROVE_OPTION)
+        dialog.setVisible(true);
+        
+        if(dialog.getFile() != null && !dialog.getFile().isEmpty())
         {
-            File archiveFile = dialog.getSelectedFile();
+            File archiveFile = new File(dialog.getDirectory() + dialog.getFile());
             if(!archiveFile.getName().endsWith(".arc"))
             {
                 archiveFile = new File(archiveFile.getPath() + ".arc");
