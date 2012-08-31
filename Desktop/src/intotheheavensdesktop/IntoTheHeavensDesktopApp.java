@@ -4,6 +4,7 @@
 
 package intotheheavensdesktop;
 
+import java.io.File;
 import org.jdesktop.application.Application;
 import org.jdesktop.application.SingleFrameApplication;
 
@@ -12,17 +13,59 @@ import org.jdesktop.application.SingleFrameApplication;
  */
 public class IntoTheHeavensDesktopApp extends SingleFrameApplication 
 {
-    protected String[] _args = null;
+    private String[] _args = null;
+    private String _contentDir = null;
+    private String _saveGameDir = null;
+    private String _locationDir = null;
+    private String _soundDir = null;
+    private String _musicDir = null;
     
     public String[] getArgs()
     {
         return _args;
     }
     
+    public String getContentDirectory()
+    {
+        return _contentDir;
+    }
+    
+    public String getSaveGameDirectory()
+    {
+        return _saveGameDir;
+    }
+    
+    public String getLocationDirectory()
+    {
+        return _locationDir;
+    }
+    
+    public String getSoundDirectory()
+    {
+        return _soundDir;
+    }
+    
+    public String getMusicDirectory()
+    {
+        return _musicDir;
+    }
+    
     @Override
     protected void initialize(String[] args)
     {
         _args = args;
+        
+        _contentDir = "base" + File.separator;
+        for(int i = 0; i<args.length; i++)
+        {
+            if(args[i].endsWith("gamedir"))
+            {
+                _contentDir = args[i + 1];
+                break;
+            }
+        }
+        
+        setContentDirectory(_contentDir);
     }
     
     /**
@@ -60,5 +103,18 @@ public class IntoTheHeavensDesktopApp extends SingleFrameApplication
         System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Ethershard Castle");
                 
         launch(IntoTheHeavensDesktopApp.class, args);
+    }
+    
+    public void setContentDirectory(String dir)
+    {
+        String userHomeDir = System.getProperty("user.home");
+        
+        _contentDir = dir + File.separator;
+        _saveGameDir = userHomeDir + File.separator + ".ethershardcastle" + File.separator + new File(_contentDir).getName() + File.separator + "savegames" + File.separator;
+        _locationDir = _contentDir + File.separator + "locations" + File.separator;
+        _soundDir = _contentDir + File.separator + "sounds" + File.separator;
+        _musicDir = _contentDir + File.separator + "music" + File.separator;
+        
+        new File(_saveGameDir).mkdirs();
     }
 }

@@ -1,0 +1,4 @@
+Title = Base Game
+Author = Bishop
+Version = 0.7
+Description = Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc porttitor nisl quis neque viverra pulvinar. Sed quis urna mattis est luctus tempor sit amet id lacus. Suspendisse sodales lectus nec justo ultricies a consectetur lectus vehicula. Proin sollicitudin odio id nunc dictum id pellentesque diam venenatis. Nulla varius aliquam tristique. Etiam iaculis pellentesque odio fringilla convallis. Integer mattis enim a augue posuere sed mollis nisi iaculis. Nulla non diam diam. Proin fringilla, enim quis porta pellentesque, dui tortor feugiat mauris, quis varius nisl orci eget sapien. Fusce aliquet, quam ut faucibus congue, velit urna condimentum nibh, vel iaculis elit lorem vitae quam. 

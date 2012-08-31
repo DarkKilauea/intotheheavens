@@ -38,11 +38,6 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
 {
     private GameModeManager _manager = new GameModeManager();
     private MainGameMode _mainMode = null;
-    private String _contentDir = null;
-    private String _saveGameDir = null;
-    private String _locationDir = null;
-    private String _soundDir = null;
-    private String _musicDir = null;
     private Timer _audioUpdateTimer = null;
     private Map<Integer, AudioPlayer> _audioSources = new HashMap<Integer, AudioPlayer>();
     private int _lastAudioId;
@@ -79,28 +74,6 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
         });
         _audioUpdateTimer.setRepeats(true);
         _audioUpdateTimer.start();
-        
-        IntoTheHeavensDesktopApp application = IntoTheHeavensDesktopApp.getApplication();
-        String[] args = application.getArgs();
-        
-        _contentDir = "base" + File.separator;
-        for(int i = 0; i<args.length; i++)
-        {
-            if(args[i].endsWith("gamedir"))
-            {
-                _contentDir = args[i + 1];
-                break;
-            }
-        }
-        
-        String userHomeDir = System.getProperty("user.home");
-        
-        _saveGameDir = userHomeDir + File.separator + ".ethershardcastle" + File.separator + "savegames" + File.separator;
-        _locationDir = _contentDir + File.separator + "locations" + File.separator;
-        _soundDir = _contentDir + File.separator + "sounds" + File.separator;
-        _musicDir = _contentDir + File.separator + "music" + File.separator;
-        
-        new File(_saveGameDir).mkdirs();
         
         _mainMode = new MainGameMode();
         _mainMode.setListener(this);
@@ -196,6 +169,8 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
         commandTextField = new javax.swing.JTextField();
         menuBar = new javax.swing.JMenuBar();
         javax.swing.JMenu fileMenu = new javax.swing.JMenu();
+        loadStoryMenuItem = new javax.swing.JMenuItem();
+        jSeparator2 = new javax.swing.JPopupMenu.Separator();
         newGameMenuItem = new javax.swing.JMenuItem();
         loadGameMenuItem = new javax.swing.JMenuItem();
         saveGameMenuItem = new javax.swing.JMenuItem();
@@ -235,13 +210,13 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
         mainPanel.setLayout(mainPanelLayout);
         mainPanelLayout.setHorizontalGroup(
             mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(commandTextField, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 433, Short.MAX_VALUE)
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 433, Short.MAX_VALUE)
+            .addComponent(commandTextField, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 690, Short.MAX_VALUE)
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 690, Short.MAX_VALUE)
         );
         mainPanelLayout.setVerticalGroup(
             mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, mainPanelLayout.createSequentialGroup()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 228, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 308, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(commandTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
@@ -250,6 +225,14 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
 
         fileMenu.setText(resourceMap.getString("fileMenu.text")); // NOI18N
         fileMenu.setName("fileMenu"); // NOI18N
+
+        loadStoryMenuItem.setAction(actionMap.get("loadStoryAction")); // NOI18N
+        loadStoryMenuItem.setText(resourceMap.getString("loadStoryMenuItem.text")); // NOI18N
+        loadStoryMenuItem.setName("loadStoryMenuItem"); // NOI18N
+        fileMenu.add(loadStoryMenuItem);
+
+        jSeparator2.setName("jSeparator2"); // NOI18N
+        fileMenu.add(jSeparator2);
 
         newGameMenuItem.setAction(actionMap.get("newGameAction")); // NOI18N
         newGameMenuItem.setName("newGameMenuItem"); // NOI18N
@@ -306,11 +289,11 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
         statusPanel.setLayout(statusPanelLayout);
         statusPanelLayout.setHorizontalGroup(
             statusPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(statusPanelSeparator, javax.swing.GroupLayout.DEFAULT_SIZE, 433, Short.MAX_VALUE)
+            .addComponent(statusPanelSeparator, javax.swing.GroupLayout.DEFAULT_SIZE, 690, Short.MAX_VALUE)
             .addGroup(statusPanelLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(statusMessageLabel)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 263, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 520, Short.MAX_VALUE)
                 .addComponent(progressBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(statusAnimationLabel)
@@ -340,7 +323,9 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
     private javax.swing.JMenuItem exitMenuItem;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JPopupMenu.Separator jSeparator1;
+    private javax.swing.JPopupMenu.Separator jSeparator2;
     private javax.swing.JMenuItem loadGameMenuItem;
+    private javax.swing.JMenuItem loadStoryMenuItem;
     private javax.swing.JPanel mainPanel;
     private javax.swing.JMenuBar menuBar;
     private javax.swing.JMenuItem newGameMenuItem;
@@ -377,7 +362,9 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
     
     public void onLocationChange()
     {
-        String saveFile = new File(_saveGameDir).getAbsolutePath() + File.separator + "autosave.sav";
+        IntoTheHeavensDesktopApp app = IntoTheHeavensDesktopApp.getApplication();
+        
+        String saveFile = new File(app.getSaveGameDirectory()).getAbsolutePath() + File.separator + "autosave.sav";
         try 
         {
             FileOutputStream stream = new FileOutputStream(saveFile);
@@ -397,8 +384,10 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
     {
         try 
         {
-            File soundFile = new File(_soundDir + filename);
-            File musicFile = new File(_musicDir + filename);
+            IntoTheHeavensDesktopApp app = IntoTheHeavensDesktopApp.getApplication();
+            
+            File soundFile = new File(app.getSoundDirectory() + filename);
+            File musicFile = new File(app.getMusicDirectory() + filename);
             
             AudioPlayer source = null;
             if (soundFile.exists())
@@ -482,10 +471,12 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
     {
         try
         {
+            IntoTheHeavensDesktopApp app = IntoTheHeavensDesktopApp.getApplication();
+            
             stopAllPlayingAudio();
             WorldState world = new WorldState();
             
-            File locDir = new File(_locationDir);
+            File locDir = new File(app.getLocationDirectory());
             if (!locDir.exists()) throw new Exception("Could not find location directory!");
             world.loadLocations(locDir);
             
@@ -526,10 +517,12 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
             
             try
             {
+                IntoTheHeavensDesktopApp app = IntoTheHeavensDesktopApp.getApplication();
+                
                 stopAllPlayingAudio();
                 WorldState world = new WorldState();
                 
-                File locDir = new File(_locationDir);
+                File locDir = new File(app.getLocationDirectory());
                 if (!locDir.exists()) throw new Exception("Could not find location directory!");
                 world.loadLocations(locDir);
 
@@ -610,9 +603,11 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
     
     private FileDialog getSaveFileChooser()
     {
+        IntoTheHeavensDesktopApp app = IntoTheHeavensDesktopApp.getApplication();
+        
         JFrame mainFrame = IntoTheHeavensDesktopApp.getApplication().getMainFrame();
         FileDialog dialog = new FileDialog(mainFrame, "Save Game...", FileDialog.SAVE);
-        dialog.setDirectory(new File(_saveGameDir).getAbsolutePath());
+        dialog.setDirectory(new File(app.getSaveGameDirectory()).getAbsolutePath());
         dialog.setFilenameFilter(new FilenameFilter() {
 
             @Override
@@ -634,9 +629,11 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
     @Action
     public void archiveScripts() 
     {
+        IntoTheHeavensDesktopApp app = IntoTheHeavensDesktopApp.getApplication();
+        
         JFrame mainFrame = IntoTheHeavensDesktopApp.getApplication().getMainFrame();
         FileDialog dialog = new FileDialog(mainFrame, "Save Archive...", FileDialog.SAVE);
-        dialog.setDirectory(new File(_locationDir).getAbsolutePath());
+        dialog.setDirectory(new File(app.getLocationDirectory()).getAbsolutePath());
         dialog.setFilenameFilter(new FilenameFilter() {
 
             @Override
@@ -676,5 +673,14 @@ public class IntoTheHeavensDesktopView extends FrameView implements IGameModeLis
                 onTextOutput("Failed to archive locations! \nException caught: " + ex.toString());
             }
         }
+    }
+
+    @Action
+    public void loadStoryAction() 
+    {
+        JFrame mainFrame = IntoTheHeavensDesktopApp.getApplication().getMainFrame();
+        StorySelectionDialog dialog = new StorySelectionDialog(mainFrame, true);
+        
+        dialog.setVisible(true);
     }
 }

@@ -1,0 +1,386 @@
+/***************************************************
+ * List of all the locations that make up the maze *
+ ***************************************************/
+
+location "A3"
+{
+	event "OnEnter"
+	{
+		print "You find yourself in a dead end."
+		print ""
+		print "There is a path to your east."
+	}
+	
+	command "Look"
+	{
+		print "There is a large crack in the wall, but it is unlikely that you could break through."
+	}
+	
+	command "Go"
+	{
+		if ($arg1 == "east") goto "B3"
+		else invoke "Go", $arg1;
+	}
+}
+
+location "B1"
+{
+	event "OnEnter"
+	{
+		print "You find yourself at a corner."
+		print ""
+		print "There is a path to your east and south."
+	}
+	
+	command "Look"
+	{
+		print "There is a rather nice corner you could stand in if you wanted."
+	}
+	
+	command "Go"
+	{
+		if ($arg1 == "east") goto "D1"
+		else if ($arg1 == "south") goto "B2"
+		else invoke "Go", $arg1;
+	}
+}
+
+location "B2"
+{
+	event "OnEnter"
+	{
+		print "You find yourself at another corner."
+		print ""
+		print "There is a path to your north and east."
+	}
+	
+	command "Look"
+	{
+		print "There is a rather nice corner you could stand in if you wanted."
+	}
+	
+	command "Go"
+	{
+		if ($arg1 == "north") goto "B1"
+		else if ($arg1 == "east") goto "C2"
+		else invoke "Go", $arg1;
+	}
+}
+
+location "B3"
+{
+	event "OnEnter"
+	{
+		print "You find yourself at a 3-way intersection."
+		print ""
+		print "There is a path to your east, west, and south."
+	}
+	
+	command "Look"
+	{
+		print "It's kinda roomy in here."
+	}
+	
+	command "Go"
+	{
+		if ($arg1 == "east") goto "C3"
+		else if ($arg1 == "west") goto "A3"
+		else if ($arg1 == "south") goto "B6"
+		else invoke "Go", $arg1;
+	}
+}
+
+location "B6"
+{
+	event "OnEnter"
+	{
+		print "You find yourself at a corner.  There is a nice breeze from the west."
+		print ""
+		print "There is a path to your north and west."
+	}
+	
+	command "Look"
+	{
+		print "You can see outside of this dreaded maze."
+	}
+	
+	command "Go"
+	{
+		if ($arg1 == "west") goto "Exit"
+		else if ($arg1 == "north") goto "B3"
+		else invoke "Go", $arg1;
+	}
+}
+
+location "C2"
+{
+	event "OnEnter"
+	{
+		print "You find yourself at another corner."
+		print ""
+		print "There is a path to your south and west."
+	}
+	
+	command "Look"
+	{
+		print "Nothing but white washed walls here."
+	}
+	
+	command "Go"
+	{
+		if ($arg1 == "south") goto "C3"
+		else if ($arg1 == "west") goto "B2"
+		else invoke "Go", $arg1;
+	}
+}
+
+location "C3"
+{
+	event "OnEnter"
+	{
+		print "You find yourself at a corner."
+		print ""
+		print "There is a path to your north and west."
+	}
+	
+	command "Look"
+	{
+		print "There is a long corridor to nowhere."
+	}
+	
+	command "Go"
+	{
+		if ($arg1 == "north") goto "C2"
+		else if ($arg1 == "west") goto "B3"
+		else invoke "Go", $arg1;
+	}
+}
+
+location "C4"
+{
+	event "OnEnter"
+	{
+		print "You find yourself at a dead end."
+		print ""
+		print "There is a path to your south."
+	}
+	
+	command "Look"
+	{
+		print "Does it smell like almonds in here?"
+	}
+	
+	command "Go"
+	{
+		if ($arg1 == "south") goto "C5"
+		else invoke "Go", $arg1;
+	}
+}
+
+location "C5"
+{
+	event "OnEnter"
+	{
+		print "You find yourself at a 3-way intersection."
+		print ""
+		print "There is a path to your north, east, and south."
+	}
+	
+	command "Look"
+	{
+		print "Just another intersection.  Nothing to see here."
+	}
+	
+	command "Go"
+	{
+		if ($arg1 == "north") goto "C4"
+		else if ($arg1 == "east") goto "D5"
+		else if ($arg1 == "south") goto "C6"
+		else invoke "Go", $arg1;
+	}
+}
+
+location "C6"
+{
+	event "OnEnter"
+	{
+		print "You find yourself at a corner with a vase."
+		print ""
+		print "There is a path to your north and east."
+	}
+	
+	command "Look"
+	{
+		print "That is a pretty rocking vase over there."
+	}
+	
+	command "Go"
+	{
+		if ($arg1 == "north") goto "C5"
+		else if ($arg1 == "east") goto "E6"
+		else invoke "Go", $arg1;
+	}
+}
+
+location "D1"
+{
+	event "OnEnter"
+	{
+		print "You find yourself at a corner."
+		print ""
+		print "There is a path to your west and south."
+	}
+	
+	command "Look"
+	{
+		print "Nothing special to look at."
+	}
+	
+	command "Go"
+	{
+		if ($arg1 == "west") goto "B1"
+		else if ($arg1 == "south") goto "D2"
+		else invoke "Go", $arg1;
+	}
+}
+
+location "D2"
+{
+	event "OnEnter"
+	{
+		print "You find yourself at a 3-way intersection."
+		print ""
+		print "There is a path to your north, east, and south."
+	}
+	
+	command "Look"
+	{
+		print "You know what would be cool?  If there was a 4-way intersection in this maze."
+	}
+	
+	command "Go"
+	{
+		if ($arg1 == "north") goto "D1"
+		else if ($arg1 == "east") goto "E2"
+		else if ($arg1 == "south") goto "D4"
+		else invoke "Go", $arg1;
+	}
+}
+
+location "D4"
+{
+	event "OnEnter"
+	{
+		print "You find yourself in a dead end."
+		print ""
+		print "There is a path to your north."
+	}
+	
+	command "Look"
+	{
+		print "Nothing like a blank wall to draw on.  Now if only we had some crayons..."
+	}
+	
+	command "Go"
+	{
+		if ($arg1 == "north") goto "D2"
+		else invoke "Go", $arg1;
+	}
+}
+
+location "D5"
+{
+	event "OnEnter"
+	{
+		print "You find yourself in a dead end."
+		print ""
+		print "There is a path to your west."
+	}
+	
+	command "Look"
+	{
+		print "It's a wall.  What do you think?"
+	}
+	
+	command "Go"
+	{
+		if ($arg1 == "west") goto "C5"
+		else invoke "Go", $arg1;
+	}
+}
+
+location "E2"
+{
+	event "OnEnter"
+	{
+		print "You find yourself at a corner."
+		print ""
+		print "There is a path to your west and south."
+	}
+	
+	command "Look"
+	{
+		print "Just a corner."
+	}
+	
+	command "Go"
+	{
+		if ($arg1 == "west") goto "D2"
+		else if ($arg1 == "south") goto "E4"
+		else invoke "Go", $arg1;
+	}
+}
+
+location "E4"
+{
+	event "OnEnter"
+	{
+		if (!$doorClosed)
+		{
+			print "A door slams shut right behind you, locking you into the maze."
+			print "Guess we better find our way out huh?"
+			print ""
+			$doorClosed = true
+		}
+		else 
+		{
+			print "You pause at a closed door in the middle of the corridor."
+			print ""
+		}
+		print "There is a path to your north and south."
+	}
+	
+	command "Look"
+	{
+		print "The door looks too solid and heavy to get through."
+	}
+	
+	command "Go"
+	{
+		if ($arg1 == "north") goto "E2"
+		else if ($arg1 == "south") goto "E6"
+		else invoke "Go", $arg1;
+	}
+}
+
+location "E6"
+{
+	event "OnEnter"
+	{
+		print "You find yourself at a corner."
+		print ""
+		print "There is a path to your north and west."
+	}
+	
+	command "Look"
+	{
+		print "Both paths look to be just as long as the other."
+	}
+	
+	command "Go"
+	{
+		if ($arg1 == "west") goto "C6"
+		else if ($arg1 == "north") goto "E4"
+		else invoke "Go", $arg1;
+	}
+}
